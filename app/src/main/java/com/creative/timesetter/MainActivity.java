@@ -114,6 +114,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
             sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
 
         }
+        //https://blog.mapbox.com/how-to-build-a-location-picker-for-your-app-8e61be7fc9cc
+        //https://github.com/mapbox/mapbox-gl-native/blob/dfd0b105cd0e45407f4df5e0e8c4f2d2739df83e/platform/android/MapboxGLAndroidSDKTestApp/src/main/java/com/mapbox/mapboxsdk/testapp/activity/navigation/LocationPickerActivity.java
     }
 
     private void checkAllPermissionsAndSetUpMap() {
