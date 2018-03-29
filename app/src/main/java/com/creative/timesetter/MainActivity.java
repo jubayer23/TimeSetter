@@ -233,6 +233,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         LatLng latLng = new LatLng(timeLocation.getLat(), timeLocation.getLang());
         Marker marker = mMap.addMarker(getTimeMarker(latLng));
         hashMapMarker.put(marker, lastPosition);
+        onMarkerClick(marker);
     }
 
     private void moveMapCameraToLoadAllMarker(){
@@ -263,7 +264,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         prevClickedMarker = marker;
 
         //times.clear();
-        if (marker.equals(userClickMarker)) {
+        if (userClickMarker != null && marker.equals(userClickMarker)) {
             selectedTimePosition = -1;
             updateBottomSheetUi(0);
         } else {
@@ -294,7 +295,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
             double lang = prevClickedMarker.getPosition().longitude;
             if(userClickMarker!= null && userClickMarker.equals(prevClickedMarker)){
                 showTimeSetDialog(lat,lang);
-
             }else{
                 showTimeSetDialog(lat,lang);
             }
@@ -543,9 +543,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                                 }else{
                                     TimeLocation timeLocation = new TimeLocation();
                                     timeLocation.setLat(lat);
-                                    timeLocation.setLat(lang);
+                                    timeLocation.setLang(lang);
                                     List<Time> times = new ArrayList<>();
                                     times.add(time);
+                                    timeLocation.setTimes(times);
                                     timeLocations.add(timeLocation);
                                     userClickMarker.remove();
                                     userClickMarker = null;
@@ -568,7 +569,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 JSONObject jsonObject = null;
                 try {
                     jsonObject = new JSONObject(getInsertTimeDummyResponse());
-                    boolean result = jsonObject.getBoolean("result");
+                    boolean result = jsonObject.getBoolean("Result");
 
                     if (result) {
                         Time time = new Time();
@@ -581,9 +582,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                         }else{
                             TimeLocation timeLocation = new TimeLocation();
                             timeLocation.setLat(lat);
-                            timeLocation.setLat(lang);
+                            timeLocation.setLang(lang);
                             List<Time> times = new ArrayList<>();
                             times.add(time);
+                            timeLocation.setTimes(times);
                             timeLocations.add(timeLocation);
                             userClickMarker.remove();
                             userClickMarker = null;
@@ -748,7 +750,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
     private String getInsertTimeDummyResponse(){
         return "{\n" +
-                "\"result\" : true,\n" +
+                "\"Result\" : true,\n" +
                 " \"id\" : 1\n" +
                 "} ";
     }
