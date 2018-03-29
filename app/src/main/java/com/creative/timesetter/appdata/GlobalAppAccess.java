@@ -5,12 +5,12 @@ package com.creative.timesetter.appdata;
 public class GlobalAppAccess {
 
 
-    public static final String APP_NAME = "DroneTracker";
-    public static String BaseUrl = "http://agrisence.com/agrisenceTracker/mobileapi/api/";
+    public static final String APP_NAME = "TimeSetter";
+    public static String BaseUrl = "http://204.12.241.178/";
     //public static String BaseUrl = "https://b5e99a4d.ngrok.io/bgb/";
-    public static final String URL_LOGIN = BaseUrl +   "login.php";
-    public static final String URL_UPDATE_LOCATION = BaseUrl +  "updateLocation.php";
-    public static final String URL_GOOGLE_MAP = "http://maps.google.com/maps?f=q&q=";
+    public static final String URL_GET_TIMES =  "getTimeLocations";
+    public static final String URL_INSERT_TIME =  "insertTime";
+    public static final String URL_DELETE_TIME =  "deleteTime";
 
 
     public static final  int SUCCESS = 1;

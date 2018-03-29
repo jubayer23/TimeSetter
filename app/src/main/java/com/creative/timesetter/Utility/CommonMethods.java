@@ -312,4 +312,9 @@ public class CommonMethods {
         Date date = new Date();
         return  dateFormat.format(date);
     }
+
+    public static String formatDate(Date date, String format){
+        DateFormat dateFormat = new SimpleDateFormat(format);
+        return  dateFormat.format(date);
+    }
 }

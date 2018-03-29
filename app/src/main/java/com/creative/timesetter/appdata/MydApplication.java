@@ -2,11 +2,13 @@ package com.creative.timesetter.appdata;
 
 import android.app.Application;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
+import com.creative.timesetter.Utility.DeviceInfoUtils;
 import com.creative.timesetter.sharedprefs.PrefManager;
 import com.google.gson.Gson;
 
@@ -25,6 +27,8 @@ public class MydApplication extends Application {
 
     private float scale;
 
+    public static String deviceImieNumber = "";
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -35,6 +39,8 @@ public class MydApplication extends Application {
         pref = new PrefManager(this);
 
         gson = new Gson();
+
+        deviceImieNumber = DeviceInfoUtils.getDeviceImieNumber(this);
     }
 
     public static synchronized MydApplication getInstance() {

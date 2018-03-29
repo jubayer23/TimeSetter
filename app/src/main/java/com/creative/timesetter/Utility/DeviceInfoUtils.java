@@ -14,6 +14,7 @@ import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.creative.timesetter.BuildConfig;
 import com.google.android.gms.common.ConnectionResult;
@@ -141,7 +142,7 @@ public class DeviceInfoUtils {
             if (tm != null)
                 imie = tm.getDeviceId();
         } catch (Exception e) {
-
+            Log.d("DEBUG_error","its here error");
         }
         return imie;
     }

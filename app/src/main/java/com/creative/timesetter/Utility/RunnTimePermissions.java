@@ -29,6 +29,7 @@ public class RunnTimePermissions {
     public static int PERMISSION_ALL = 1;
     public static String[] PERMISSIONS = {
             Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.READ_PHONE_STATE
            };
 
     public static boolean requestForAllRuntimePermissions(Context context) {
