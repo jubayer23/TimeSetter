@@ -198,6 +198,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
     protected void placeAllMarkersAndPlacementCamera(double lat, double lang) {
 
+        builder = new LatLngBounds.Builder();
+        LatLng latLng = new LatLng(lat,lang);
+        builder.include(latLng);
 
         placeAllMarkerOfListInMap();
 
@@ -217,7 +220,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     private void placeAllMarkerOfListInMap(){
         int count = 0;
         mMap.clear();
-        builder = new LatLngBounds.Builder();
+
         for (TimeLocation timeLocation : timeLocations) {
             LatLng latLng = new LatLng(timeLocation.getLat(), timeLocation.getLang());
             Marker marker = mMap.addMarker(getTimeMarker(latLng));
