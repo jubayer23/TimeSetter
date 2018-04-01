@@ -50,7 +50,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -65,8 +64,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.creative.timesetter.appdata.MydApplication.deviceImieNumber;
 
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, View.OnClickListener {
@@ -97,6 +94,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     private Marker prevClickedMarker;
     private HashMap<Marker, Integer> hashMapMarker = new HashMap<>();
     LatLngBounds.Builder builder;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -201,7 +199,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     protected void placeAllMarkersAndPlacementCamera(double lat, double lang) {
 
         builder = new LatLngBounds.Builder();
-        LatLng latLng = new LatLng(lat,lang);
+        LatLng latLng = new LatLng(lat, lang);
         builder.include(latLng);
 
         placeAllMarkerOfListInMap();
@@ -219,7 +217,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));*/
     }
 
-    private void placeAllMarkerOfListInMap(){
+    private void placeAllMarkerOfListInMap() {
         int count = 0;
         mMap.clear();
 
@@ -232,7 +230,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         }
     }
 
-    private void placeLastMarkerOfListInMap(){
+    private void placeLastMarkerOfListInMap() {
         int lastPosition = timeLocations.size() - 1;
         TimeLocation timeLocation = timeLocations.get(lastPosition);
         LatLng latLng = new LatLng(timeLocation.getLat(), timeLocation.getLang());
@@ -241,9 +239,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         onMarkerClick(marker);
     }
 
-    private void moveMapCameraToLoadAllMarker(){
+    private void moveMapCameraToLoadAllMarker() {
         LatLngBounds bounds = builder.build();
-        int padding = 0; // offset from edges of the map in pixels
+        int padding = 80; // offset from edges of the map in pixels
         CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
         mMap.animateCamera(cu);
     }
@@ -252,6 +250,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     public void onMapClick(LatLng latLng) {
 
     }
+
     @Override
     public void onMapLongClick(LatLng latLng) {
         if (userClickMarker != null) {
@@ -294,14 +293,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     public void onClick(View view) {
         int id = view.getId();
 
-        if(id == R.id.btn_set_time){
-            if(prevClickedMarker == null) return;
+        if (id == R.id.btn_set_time) {
+            if (prevClickedMarker == null) return;
             double lat = prevClickedMarker.getPosition().latitude;
             double lang = prevClickedMarker.getPosition().longitude;
-            if(userClickMarker!= null && userClickMarker.equals(prevClickedMarker)){
-                showTimeSetDialog(lat,lang);
-            }else{
-                showTimeSetDialog(lat,lang);
+            if (userClickMarker != null && userClickMarker.equals(prevClickedMarker)) {
+                showTimeSetDialog(lat, lang);
+            } else {
+                showTimeSetDialog(lat, lang);
             }
 
         }
@@ -324,7 +323,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     private MarkerOptions getUserClickMarkerOptions(LatLng position) {
         return new MarkerOptions()
                 .position(position)
-                .title("Brisbane")
+                .title("To set time click on the bottom Set Time button!")
                 .draggable(true);
     }
 
@@ -334,7 +333,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
     }
 
-    public void removeMarkerAndSetAsUserClickedMarker(){
+    public void removeMarkerAndSetAsUserClickedMarker() {
         showProgressDialog("Loading..", true, false);
         timeLocations.remove(selectedTimePosition);
         placeAllMarkerOfListInMap();
@@ -346,7 +345,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
-    public void updateBottomSheetUi(int num_of_time_set){
+    public void updateBottomSheetUi(int num_of_time_set) {
         if (num_of_time_set > 0) {
             tv_num_of_time.setText(num_of_time_set + " time set!");
             recyclerView.setVisibility(View.VISIBLE);
@@ -358,11 +357,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         }
     }
 
-    private void showTimeSetDialog(final double lat, final double lang){
+    private void showTimeSetDialog(final double lat, final double lang) {
         final Dialog dialog_start = new Dialog(this,
                 android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         dialog_start.setCancelable(true);
-        dialog_start.setContentView(R.layout.dialog_set_reminder);
+        dialog_start.setContentView(R.layout.dialog_set_time);
 
         final TextView tv_set_date = (TextView) dialog_start.findViewById(R.id.tv_set_date);
         final TextView tv_set_time = (TextView) dialog_start.findViewById(R.id.tv_set_time);
@@ -425,17 +424,17 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         btn_submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isDateSet[0] && isTimeSet[0]){
+                if (isDateSet[0] && isTimeSet[0]) {
                     Date date = calendar.getTime();
                     Date currentTime = Calendar.getInstance().getTime();
-                    if(currentTime.after(date)){
-                        Toast.makeText(MainActivity.this,"You must have to select a future date!",Toast.LENGTH_LONG).show();
+                    if (currentTime.after(date)) {
+                        Toast.makeText(MainActivity.this, "You must have to select a future date!", Toast.LENGTH_LONG).show();
                         return;
                     }
 
-                    String timeFormat = CommonMethods.formatDate(date,"dd/MM/yyyy HH:mm:ss.SSS");
-                    String deviceTimeFormat = CommonMethods.formatDate(currentTime,"dd/MM/yyyy HH:mm:ss.SSS");
-                    sentRequestToInsertTime(GlobalAppAccess.URL_INSERT_TIME,lat,lang,MydApplication.deviceImieNumber,timeFormat,deviceTimeFormat);
+                    String timeFormat = CommonMethods.formatDate(date, "dd/MM/yyyy HH:mm:ss.SSS");
+                    String deviceTimeFormat = CommonMethods.formatDate(currentTime, "dd/MM/yyyy HH:mm:ss.SSS");
+                    sentRequestToInsertTime(GlobalAppAccess.URL_INSERT_TIME, lat, lang, MydApplication.deviceImieNumber, timeFormat, deviceTimeFormat);
                     dialog_start.dismiss();
                 }
             }
@@ -468,22 +467,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                         dismissProgressDialog();
 
 
-                        try {
-                            TimeInfo timeInfo = MydApplication.gson.fromJson(response, TimeInfo.class);
+                        TimeInfo timeInfo = MydApplication.gson.fromJson(response, TimeInfo.class);
 
-                            JSONObject jsonObject = new JSONObject(response);
-                            String result = jsonObject.getString("result");
 
-                            if (timeInfo.getResult()) {
-                                timeLocations.clear();
-                                timeLocations.addAll(timeInfo.getTimeLocations());
-                                checkAllPermissionsAndSetUpMap();
+                        if (timeInfo.getResult()) {
+                            timeLocations.clear();
+                            timeLocations.addAll(timeInfo.getTimeLocations());
+                            checkAllPermissionsAndSetUpMap();
 
-                            } else {
-                                AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Server problem while loading the timeLocations!", false);
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } else {
+                            AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Server problem while loading the timeLocations!", false);
                         }
 
 
@@ -491,12 +484,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d("DEBUG","its here 1");
-                Log.d("DEBUG",deviceImieNumber);
                 dismissProgressDialog();
 
-                //AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Network problem. please try again!", false);
-                String response = getTimesResponseDummy();
+                AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Network problem. please try again!", false);
+               /* String response = getTimesResponseDummy();
 
                 TimeInfo timeInfo = MydApplication.gson.fromJson(response, TimeInfo.class);
 
@@ -505,7 +496,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                     timeLocations.addAll(timeInfo.getTimeLocations());
                     checkAllPermissionsAndSetUpMap();
 
-                }
+                }*/
             }
         });
 
@@ -526,7 +517,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 new com.android.volley.Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                       Log.d("DEBUG",response);
+                        Log.d("DEBUG", response);
 
 
                         dismissProgressDialog();
@@ -539,13 +530,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
                             if (result) {
                                 Time time = new Time();
-                                time.setId(Integer.valueOf(jsonObject.getString("id")));
+                                time.setId(Integer.valueOf(jsonObject.getString("Id")));
                                 time.setDeviceId(deviceId);
                                 time.setTime(setTime);
-                                if(selectedTimePosition != -1){
+                                if (selectedTimePosition != -1) {
                                     timeLocations.get(selectedTimePosition).getTimes().add(time);
                                     timeAdapter.notifyDataSetChanged();
-                                }else{
+                                } else {
                                     TimeLocation timeLocation = new TimeLocation();
                                     timeLocation.setLat(lat);
                                     timeLocation.setLang(lang);
@@ -581,10 +572,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                         time.setId(Integer.valueOf(jsonObject.getString("id")));
                         time.setDeviceId(deviceId);
                         time.setTime(setTime);
-                        if(selectedTimePosition != -1){
+                        if (selectedTimePosition != -1) {
                             timeLocations.get(selectedTimePosition).getTimes().add(time);
                             timeAdapter.notifyDataSetChanged();
-                        }else{
+                        } else {
                             TimeLocation timeLocation = new TimeLocation();
                             timeLocation.setLat(lat);
                             timeLocation.setLang(lang);
@@ -603,7 +594,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 }
 
             }
-        }){
+        }) {
             @Override
             protected Map<String, String> getParams() {
                 //userId=XXX&routeId=XXX&selected=XXX
@@ -632,11 +623,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         // "title" and "snippet".
         // private final View mWindow;
 
-        private final View mContents;
+        //private final View mContents;
 
         CustomInfoWindowAdapter() {
             //mWindow = getLayoutInflater().inflate(R.layout.custom_info_window, null);
-            mContents = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
+           // mContents = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
         }
 
         @Override
@@ -646,8 +637,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
         @Override
         public View getInfoContents(Marker marker) {
-            render(marker, mContents);
-            return mContents;
+           // render(marker, mContents);
+            return null;
         }
 
         private void render(Marker marker, View view) {
@@ -685,9 +676,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
             // DeviceInfoUtils.checkMarshMallowPermission(this);
             int result = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
             int result2 = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+            int result3 = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE);
             if (result == PackageManager.PERMISSION_GRANTED
-                    && result2 == PackageManager.PERMISSION_GRANTED) {
+                    && result2 == PackageManager.PERMISSION_GRANTED
+                    && result3 == PackageManager.PERMISSION_GRANTED) {
                 Log.d("DEBUG", "fragment attach");
+                MydApplication.deviceImieNumber = DeviceInfoUtils.getDeviceImieNumber(this);
 
                 setUpMap();
             }
@@ -753,7 +747,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 "}";
     }
 
-    private String getInsertTimeDummyResponse(){
+    private String getInsertTimeDummyResponse() {
         return "{\n" +
                 "\"Result\" : true,\n" +
                 " \"id\" : 1\n" +

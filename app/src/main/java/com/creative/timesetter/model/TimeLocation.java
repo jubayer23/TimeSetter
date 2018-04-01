@@ -13,7 +13,7 @@ public class TimeLocation implements Parcelable {
     @SerializedName("Lat")
     @Expose
     private Double lat;
-    @SerializedName("Lang")
+    @SerializedName("Long")
     @Expose
     private Double lang;
     @SerializedName("Times")

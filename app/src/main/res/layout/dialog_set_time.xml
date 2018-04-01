@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="10dp"
-            android:text="Set Reminder"
+            android:text="Set Time"
             android:textColor="@color/black"
             android:textSize="18sp" />
 
@@ -108,7 +108,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/btn_selector_green_round"
-                android:text="Set Reminder"
+                android:text="Set Time"
                 android:textColor="@color/white" />
         </LinearLayout>
 

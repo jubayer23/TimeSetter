@@ -10,7 +10,7 @@ import com.google.gson.annotations.SerializedName;
 public class Time implements Parcelable
 {
 
-    @SerializedName("Id")
+    @SerializedName("id")
     @Expose
     private Integer id;
     @SerializedName("deviceId")

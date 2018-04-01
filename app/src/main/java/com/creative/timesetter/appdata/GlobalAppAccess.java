@@ -8,9 +8,9 @@ public class GlobalAppAccess {
     public static final String APP_NAME = "TimeSetter";
     public static String BaseUrl = "http://204.12.241.178/";
     //public static String BaseUrl = "https://b5e99a4d.ngrok.io/bgb/";
-    public static final String URL_GET_TIMES =  "getTimeLocations";
-    public static final String URL_INSERT_TIME =  "insertTime";
-    public static final String URL_DELETE_TIME =  "deleteTime";
+    public static final String URL_GET_TIMES =  BaseUrl + "getTimes";
+    public static final String URL_INSERT_TIME = BaseUrl +  "insertTime";
+    public static final String URL_DELETE_TIME = BaseUrl +  "deleteTime";
 
 
     public static final  int SUCCESS = 1;
