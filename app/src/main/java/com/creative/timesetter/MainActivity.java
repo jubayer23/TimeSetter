@@ -16,6 +16,8 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -44,12 +46,17 @@ import com.creative.timesetter.fragment.TimePickerFragment;
 import com.creative.timesetter.model.Time;
 import com.creative.timesetter.model.TimeLocation;
 import com.creative.timesetter.model.TimeInfo;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -83,6 +90,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     private RecyclerView recyclerView;
     private TimeAdapter timeAdapter;
     private TextView tv_no_time_set_warning;
+    private TextView tv_location_name;
     //private List<Time> times = new ArrayList<>();
 
 
@@ -141,6 +149,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
         //bottom sheet
         tv_num_of_time = (TextView) findViewById(R.id.tv_num_of_time);
+        tv_location_name = (TextView) findViewById(R.id.tv_location_name);
+        tv_location_name.setVisibility(View.GONE);
         tv_no_time_set_warning = (TextView) findViewById(R.id.tv_no_time_set_warning);
         tv_no_time_set_warning.setVisibility(View.GONE);
         btn_set_time = (Button) findViewById(R.id.btn_set_time);
@@ -179,7 +189,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         //mMap.setOnMapClickListener(this);
-        mMap.setOnMapLongClickListener(this);
+        //mMap.setOnMapLongClickListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter());
 
@@ -244,6 +254,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         int padding = 80; // offset from edges of the map in pixels
         CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
         mMap.animateCamera(cu);
+    }
+    protected void zoomToSpecificLocation(LatLng latLng) {
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(latLng)      // Sets the center of the map to location user
+                .zoom(18)                   // Sets the zoom
+                .bearing(0)                // Sets the orientation of the camera to east
+                .tilt(0)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
     @Override
@@ -324,6 +343,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         return new MarkerOptions()
                 .position(position)
                 .title("To set time click on the bottom Set Time button!")
+                .draggable(true);
+    }
+    private MarkerOptions getUserClickMarkerOptions(LatLng position, String locationName) {
+        return new MarkerOptions()
+                .position(position)
+                .title(locationName)
+                .snippet("To set time click on the bottom Set Time button!")
                 .draggable(true);
     }
 
@@ -723,6 +749,52 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
             }
 
         }
+        if (requestCode == PLACE_PICKER_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlacePicker.getPlace(data, this);
+                String toastMsg = String.format("Place: %s", place.getName());
+                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
+                if (userClickMarker != null) {
+                    userClickMarker.remove();
+                }
+                userClickMarker = mMap.addMarker(getUserClickMarkerOptions(place.getLatLng(), String.valueOf(place.getName())));
+                onMarkerClick(userClickMarker);
+                zoomToSpecificLocation(place.getLatLng());
+                userClickMarker.showInfoWindow();
+            }
+        }
+    }
+
+
+    public boolean onCreateOptionsMenu(Menu paramMenu) {
+        getMenuInflater().inflate(R.menu.menu_main, paramMenu);
+        return true;
+    }
+
+   public static final int PLACE_PICKER_REQUEST = 1;
+    @Override
+    public boolean onOptionsItemSelected(MenuItem paramMenuItem) {
+
+        switch (paramMenuItem.getItemId()) {
+
+            case R.id.ic_poi:
+
+                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+
+                try {
+                    startActivityForResult(builder.build(this), PLACE_PICKER_REQUEST);
+                } catch (GooglePlayServicesRepairableException e) {
+                    e.printStackTrace();
+                } catch (GooglePlayServicesNotAvailableException e) {
+                    e.printStackTrace();
+                }
+                //startActivity(new Intent(getActivity(), WishListActivity.class));
+                // Toast.makeText(MainActivity.this,"Please publish your app on play store first!",Toast.LENGTH_LONG).show();
+                break;
+
+        }
+
+        return false;
     }
 
     private String getTimesResponseDummy() {
@@ -753,4 +825,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 " \"id\" : 1\n" +
                 "} ";
     }
+
+
+
 }

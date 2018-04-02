@@ -17,6 +17,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.creative.timesetter.MainActivity;
 import com.creative.timesetter.R;
+import com.creative.timesetter.Utility.CommonMethods;
 import com.creative.timesetter.alertbanner.AlertDialogForAnything;
 import com.creative.timesetter.appdata.GlobalAppAccess;
 import com.creative.timesetter.appdata.MydApplication;
@@ -78,7 +79,7 @@ public class TimeAdapter extends RecyclerView.Adapter<TimeAdapter.MyViewHolder> 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         final Time event = Displayedplaces.get(MainActivity.selectedTimePosition).getTimes().get(position);
-        holder.tv_time.setText(event.getTime());
+        holder.tv_time.setText(CommonMethods.changeFormat(event.getTime(),"MM/dd/yyyy HH:mm:ss"));
         if(MydApplication.deviceImieNumber.equals(event.getDeviceId())){
             holder.btn_delete.setVisibility(View.VISIBLE);
         }else{

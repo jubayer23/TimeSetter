@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -316,5 +317,18 @@ public class CommonMethods {
     public static String formatDate(Date date, String format){
         DateFormat dateFormat = new SimpleDateFormat(format);
         return  dateFormat.format(date);
+    }
+
+    public static String changeFormat(String currentFormat, String expectedFormat){
+        String result = "No date";
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
+        try {
+            Date date = formatter.parse(currentFormat);
+            result = formatDate(date,expectedFormat);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 }
