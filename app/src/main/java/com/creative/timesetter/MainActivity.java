@@ -43,6 +43,7 @@ import com.creative.timesetter.appdata.GlobalAppAccess;
 import com.creative.timesetter.appdata.MydApplication;
 import com.creative.timesetter.fragment.DatePickerFragment;
 import com.creative.timesetter.fragment.TimePickerFragment;
+import com.creative.timesetter.model.NearByPlaceInfo;
 import com.creative.timesetter.model.Time;
 import com.creative.timesetter.model.TimeLocation;
 import com.creative.timesetter.model.TimeInfo;
@@ -189,7 +190,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         //mMap.setOnMapClickListener(this);
-        //mMap.setOnMapLongClickListener(this);
+        mMap.setOnMapLongClickListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter());
 
@@ -258,7 +259,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     protected void zoomToSpecificLocation(LatLng latLng) {
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(latLng)      // Sets the center of the map to location user
-                .zoom(18)                   // Sets the zoom
+                .zoom(20)                   // Sets the zoom
                 .bearing(0)                // Sets the orientation of the camera to east
                 .tilt(0)                   // Sets the tilt of the camera to 30 degrees
                 .build();                   // Creates a CameraPosition from the builder
@@ -272,10 +273,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        if (userClickMarker != null) {
-            userClickMarker.remove();
-        }
-        userClickMarker = mMap.addMarker(getUserClickMarkerOptions(latLng));
+
+        sentRequestToCheckIfItIsValidPOI(latLng);
     }
 
     @Override
@@ -411,7 +410,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 calendar.set(Calendar.YEAR, year);
                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
                 Date date = calendar.getTime();
-                tv_set_date.setText(CommonMethods.formatDate(date, "y-MMM-d"));
+                tv_set_date.setText(CommonMethods.formatDate(date, "MMM-d-y"));
                 //event_date[0] = AppConstant.getDateTimeFormat().format(date);
             }
         };
@@ -425,7 +424,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 calendar.set(Calendar.SECOND, 0);
 
                 Date date = calendar.getTime();
-                tv_set_time.setText(CommonMethods.formatDate(date, "HH:mm:ss"));
+                tv_set_time.setText(CommonMethods.formatDate(date, "hh:mm a"));
             }
         };
 
@@ -826,6 +825,78 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 "} ";
     }
 
+    public void sentRequestToCheckIfItIsValidPOI(final LatLng latLng) {
 
+        String location = latLng.latitude + "," + latLng.longitude;
+
+        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?type=point_of_interest&rankby=distance&location="+ location +"&sensor=false&key=AIzaSyCHsF72opxJ7MfM5dqq4z_-2ujjujukI3E";
+        Log.d("DEBUG", url);
+        //url = url + "?" + "email=" + email + "&password=" + password;
+        // TODO Auto-generated method stub
+        showProgressDialog("Loading..", true, false);
+
+        final StringRequest req = new StringRequest(Request.Method.GET, url,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                       // Log.d("DEBUG", response);
+
+
+                        dismissProgressDialog();
+
+                        NearByPlaceInfo nearByPlaceInfo = MydApplication.gson.fromJson(response, NearByPlaceInfo.class);
+
+                        if(nearByPlaceInfo.getResults().isEmpty()){
+                            Toast.makeText(MainActivity.this,"You daily quota for this api is finished!",Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        String name = nearByPlaceInfo.getResults().get(0).getName();
+                        double lat = nearByPlaceInfo.getResults().get(0).getGeometry().getLocation().getLat();
+                        double lang = nearByPlaceInfo.getResults().get(0).getGeometry().getLocation().getLng();
+                        LatLng nearByPlaceLatLng = new LatLng(lat,lang);
+
+                        Location nearByPlaceLocation = new Location("nearByPlaceLocation");
+                        nearByPlaceLocation.setLatitude(lat);
+                        nearByPlaceLocation.setLongitude(lang);
+
+                        Location userClickedLocation = new Location("userClickedLocation");
+                        userClickedLocation.setLatitude(latLng.latitude);
+                        userClickedLocation.setLongitude(latLng.longitude);
+
+                        double distance = userClickedLocation.distanceTo(nearByPlaceLocation);
+
+                        //Toast.makeText(MainActivity.this,distance + " ",Toast.LENGTH_LONG).show();
+
+                        if(distance <= 10 ){
+                            if (userClickMarker != null) {
+                                userClickMarker.remove();
+                            }
+                            userClickMarker = mMap.addMarker(getUserClickMarkerOptions(nearByPlaceLatLng,name));
+                            onMarkerClick(userClickMarker);
+                            zoomToSpecificLocation(nearByPlaceLatLng);
+                            userClickMarker.showInfoWindow();
+                        }else{
+                            Toast.makeText(MainActivity.this,"Invalid selection!!",Toast.LENGTH_LONG).show();
+                        }
+
+
+
+
+
+
+                    }
+                }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                dismissProgressDialog();
+            }
+        });
+
+        req.setRetryPolicy(new DefaultRetryPolicy(60000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        // TODO Auto-generated method stub
+        MydApplication.getInstance().addToRequestQueue(req);
+    }
 
 }
