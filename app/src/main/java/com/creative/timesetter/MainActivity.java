@@ -765,10 +765,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     }
 
 
-    public boolean onCreateOptionsMenu(Menu paramMenu) {
+/*    public boolean onCreateOptionsMenu(Menu paramMenu) {
         getMenuInflater().inflate(R.menu.menu_main, paramMenu);
         return true;
-    }
+    }*/
 
    public static final int PLACE_PICKER_REQUEST = 1;
     @Override

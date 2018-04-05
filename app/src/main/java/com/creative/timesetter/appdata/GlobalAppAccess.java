@@ -33,4 +33,6 @@ public class GlobalAppAccess {
     public static final String KEY_CALL_FROM = "call_from";
     public static final String KEY_NOTIFICATION_ID = "notification_id";
 
+    public static final String TAG_ALARM_RECEIVER = "alarm_receiver";
+
 }
