@@ -94,7 +94,9 @@ public class TimeAdapter extends RecyclerView.Adapter<TimeAdapter.MyViewHolder> 
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
-        final Time event = Displayedplaces.get(MainActivity.selectedTimePosition).getTimes().get(position);
+
+        final TimeLocation timeLocation = Displayedplaces.get(MainActivity.selectedTimePosition);
+        final Time event = timeLocation.getTimes().get(position);
         holder.tv_time.setText(CommonMethods.changeFormat(event.getTime(),"MM/dd/yyyy HH:mm:ss"));
         if(MydApplication.deviceImieNumber.equals(event.getDeviceId())){
             holder.btn_delete.setVisibility(View.VISIBLE);
@@ -112,7 +114,7 @@ public class TimeAdapter extends RecyclerView.Adapter<TimeAdapter.MyViewHolder> 
         holder.btn_set_alarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showReminderDialog();
+                showReminderDialog(timeLocation.getLat(),timeLocation.getLang());
             }
         });
 
@@ -186,7 +188,7 @@ public class TimeAdapter extends RecyclerView.Adapter<TimeAdapter.MyViewHolder> 
             @Override
             public void onClick(View v) {
                 if(isDateSet[0] && isTimeSet[0]){
-                    setAlarm(calendar,title,body);
+                    setAlarm(calendar,lat,lang);
                     dialog_start.dismiss();
                 }
             }
