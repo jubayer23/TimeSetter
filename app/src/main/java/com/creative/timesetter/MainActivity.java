@@ -104,6 +104,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     private HashMap<Marker, Integer> hashMapMarker = new HashMap<>();
     LatLngBounds.Builder builder;
 
+
+    private double alarm_lat, alarm_lang;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,6 +117,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         init();
 
         initBottomSheetListAdapter();
+
+        if (getIntent().getStringExtra(GlobalAppAccess.KEY_CALL_FROM) != null &&
+                !getIntent().getStringExtra(GlobalAppAccess.KEY_CALL_FROM).isEmpty() &&
+                getIntent().getStringExtra(GlobalAppAccess.KEY_CALL_FROM).equals(GlobalAppAccess.TAG_ALARM_RECEIVER)) {
+            alarm_lat = getIntent().getDoubleExtra("lat", 0);
+            alarm_lang = getIntent().getDoubleExtra("lang", 0);
+        } else {
+            alarm_lat = 0;
+            alarm_lang = 0;
+        }
 
         if (savedInstanceState == null) {
 
@@ -210,12 +223,17 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     protected void placeAllMarkersAndPlacementCamera(double lat, double lang) {
 
         builder = new LatLngBounds.Builder();
-        LatLng latLng = new LatLng(lat, lang);
-        builder.include(latLng);
-
         placeAllMarkerOfListInMap();
 
-        moveMapCameraToLoadAllMarker();
+        if (alarm_lat != 0 && alarm_lang != 0) {
+            LatLng latLng = new LatLng(alarm_lat, alarm_lang);
+            zoomToSpecificLocation(latLng);
+        } else {
+            LatLng latLng = new LatLng(lat, lang);
+            builder.include(latLng);
+            moveMapCameraToLoadAllMarker();
+        }
+
 
 
        /* if (mMap == null) return;
@@ -256,6 +274,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
         mMap.animateCamera(cu);
     }
+
     protected void zoomToSpecificLocation(LatLng latLng) {
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(latLng)      // Sets the center of the map to location user
@@ -344,6 +363,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 .title("To set time click on the bottom Set Time button!")
                 .draggable(true);
     }
+
     private MarkerOptions getUserClickMarkerOptions(LatLng position, String locationName) {
         return new MarkerOptions()
                 .position(position)
@@ -652,7 +672,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
         CustomInfoWindowAdapter() {
             //mWindow = getLayoutInflater().inflate(R.layout.custom_info_window, null);
-           // mContents = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
+            // mContents = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
         }
 
         @Override
@@ -662,7 +682,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
         @Override
         public View getInfoContents(Marker marker) {
-           // render(marker, mContents);
+            // render(marker, mContents);
             return null;
         }
 
@@ -705,7 +725,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
             if (result == PackageManager.PERMISSION_GRANTED
                     && result2 == PackageManager.PERMISSION_GRANTED
                     && result3 == PackageManager.PERMISSION_GRANTED) {
-                Log.d("DEBUG", "fragment attach");
+                //Log.d("DEBUG", "fragment attach");
                 MydApplication.deviceImieNumber = DeviceInfoUtils.getDeviceImieNumber(this);
 
                 setUpMap();
@@ -770,7 +790,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         return true;
     }*/
 
-   public static final int PLACE_PICKER_REQUEST = 1;
+    public static final int PLACE_PICKER_REQUEST = 1;
+
     @Override
     public boolean onOptionsItemSelected(MenuItem paramMenuItem) {
 
@@ -829,7 +850,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
         String location = latLng.latitude + "," + latLng.longitude;
 
-        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?type=point_of_interest&rankby=distance&location="+ location +"&sensor=false&key=AIzaSyCHsF72opxJ7MfM5dqq4z_-2ujjujukI3E";
+        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?type=point_of_interest&rankby=distance&location=" + location + "&sensor=false&key=AIzaSyCHsF72opxJ7MfM5dqq4z_-2ujjujukI3E";
         Log.d("DEBUG", url);
         //url = url + "?" + "email=" + email + "&password=" + password;
         // TODO Auto-generated method stub
@@ -839,22 +860,22 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 new com.android.volley.Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                       // Log.d("DEBUG", response);
+                        // Log.d("DEBUG", response);
 
 
                         dismissProgressDialog();
 
                         NearByPlaceInfo nearByPlaceInfo = MydApplication.gson.fromJson(response, NearByPlaceInfo.class);
 
-                        if(nearByPlaceInfo.getResults().isEmpty()){
-                            Toast.makeText(MainActivity.this,"You daily quota for this api is finished!",Toast.LENGTH_LONG).show();
+                        if (nearByPlaceInfo.getResults().isEmpty()) {
+                            Toast.makeText(MainActivity.this, "You daily quota for this api is finished!", Toast.LENGTH_LONG).show();
                             return;
                         }
 
                         String name = nearByPlaceInfo.getResults().get(0).getName();
                         double lat = nearByPlaceInfo.getResults().get(0).getGeometry().getLocation().getLat();
                         double lang = nearByPlaceInfo.getResults().get(0).getGeometry().getLocation().getLng();
-                        LatLng nearByPlaceLatLng = new LatLng(lat,lang);
+                        LatLng nearByPlaceLatLng = new LatLng(lat, lang);
 
                         Location nearByPlaceLocation = new Location("nearByPlaceLocation");
                         nearByPlaceLocation.setLatitude(lat);
@@ -868,21 +889,17 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
                         //Toast.makeText(MainActivity.this,distance + " ",Toast.LENGTH_LONG).show();
 
-                        if(distance <= 10 ){
+                        if (distance <= 10) {
                             if (userClickMarker != null) {
                                 userClickMarker.remove();
                             }
-                            userClickMarker = mMap.addMarker(getUserClickMarkerOptions(nearByPlaceLatLng,name));
+                            userClickMarker = mMap.addMarker(getUserClickMarkerOptions(nearByPlaceLatLng, name));
                             onMarkerClick(userClickMarker);
                             zoomToSpecificLocation(nearByPlaceLatLng);
                             userClickMarker.showInfoWindow();
-                        }else{
-                            Toast.makeText(MainActivity.this,"Invalid selection!!",Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Invalid selection!!", Toast.LENGTH_LONG).show();
                         }
-
-
-
-
 
 
                     }

@@ -319,11 +319,11 @@ public class CommonMethods {
         return  dateFormat.format(date);
     }
 
-    public static String changeFormat(String currentFormat, String expectedFormat){
+    public static String changeFormat(String timeString, String current_format, String expectedFormat){
         String result = "No date";
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
+        SimpleDateFormat formatter = new SimpleDateFormat(current_format);
         try {
-            Date date = formatter.parse(currentFormat);
+            Date date = formatter.parse(timeString);
             result = formatDate(date,expectedFormat);
         } catch (ParseException e) {
             e.printStackTrace();

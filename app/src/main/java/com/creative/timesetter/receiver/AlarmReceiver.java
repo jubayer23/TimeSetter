@@ -30,8 +30,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         this.mContext = context;
         Toast.makeText(context, "Alarm received!", Toast.LENGTH_LONG).show();
 
-        String lat = intent.getStringExtra("lat");
-        String lang = intent.getStringExtra("lang");
+        double lat = intent.getDoubleExtra("lat",0);
+        double lang = intent.getDoubleExtra("lang",0);
         String time = intent.getStringExtra("time");
 
 
@@ -41,9 +41,9 @@ public class AlarmReceiver extends BroadcastReceiver {
         Intent intent1 = new Intent(context, MainActivity.class);
         intent1.putExtra(GlobalAppAccess.KEY_CALL_FROM,GlobalAppAccess.TAG_ALARM_RECEIVER);
         intent1.putExtra("time",time);
-        intent1.putExtra("lat",time);
+        intent1.putExtra("lat",lat);
         intent1.putExtra("lang",lang);
-        intent1.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent1.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP );
         final PendingIntent resultPendingIntent =
                 PendingIntent.getActivity(
                         mContext,

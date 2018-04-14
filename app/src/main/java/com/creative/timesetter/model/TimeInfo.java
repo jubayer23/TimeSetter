@@ -1,6 +1,7 @@
 
 package com.creative.timesetter.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -15,7 +16,7 @@ public class TimeInfo implements Parcelable
     private Boolean result;
     @SerializedName("TimeLocation")
     @Expose
-    private List<TimeLocation> timeLocations = null;
+    private List<TimeLocation> timeLocations = new ArrayList<>();
     public final static Parcelable.Creator<TimeInfo> CREATOR = new Creator<TimeInfo>() {
 
 

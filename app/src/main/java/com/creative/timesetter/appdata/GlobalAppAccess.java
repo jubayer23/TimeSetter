@@ -6,11 +6,11 @@ public class GlobalAppAccess {
 
 
     public static final String APP_NAME = "TimeSetter";
-    public static String BaseUrl = "http://204.12.241.178/";
+    public static String BaseUrl = "http://198.204.244.250:8084/";
     //public static String BaseUrl = "https://b5e99a4d.ngrok.io/bgb/";
-    public static final String URL_GET_TIMES =  BaseUrl + "getTimes";
-    public static final String URL_INSERT_TIME = BaseUrl +  "insertTime";
-    public static final String URL_DELETE_TIME = BaseUrl +  "deleteTime";
+    public static final String URL_GET_TIMES =  BaseUrl + "getTimes.jsp";
+    public static final String URL_INSERT_TIME = BaseUrl +  "insertTime.jsp";
+    public static final String URL_DELETE_TIME = BaseUrl +  "deleteTime.jsp";
 
 
     public static final  int SUCCESS = 1;
@@ -34,5 +34,8 @@ public class GlobalAppAccess {
     public static final String KEY_NOTIFICATION_ID = "notification_id";
 
     public static final String TAG_ALARM_RECEIVER = "alarm_receiver";
+
+    public static final String[] reminder_time = {"Select a time", "Before time expires", "15 mins before",
+            "30 mins before","1 hour before"};
 
 }

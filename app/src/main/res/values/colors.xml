@@ -43,4 +43,6 @@
     <color name="gray_light">#818a91</color>
     <color name="gray_lighter">#AAAAAA</color>
     <color name="gray_lightest">#CCCCCC</color>
+
+    <color name="blue_for_keyboard_blur">#80BDD0</color>
 </resources>
