@@ -217,6 +217,20 @@ public class TimeAdapter extends RecyclerView.Adapter<TimeAdapter.MyViewHolder> 
         AlarmManager alarmManager = (AlarmManager) activity.getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, targetCal.getTimeInMillis(), pendingIntent);
 
+        int num_of_time_user_set_alarm = MydApplication.getInstance().getPrefManger().getNumberOfTimeUserSetAlarm();
+
+        num_of_time_user_set_alarm = num_of_time_user_set_alarm + 1;
+
+        if(num_of_time_user_set_alarm == 3){
+            ((MainActivity) activity).showInterstitialAds();
+            num_of_time_user_set_alarm = 0;
+        }
+
+
+        MydApplication.getInstance().getPrefManger().setNumberOfTimeUserSetAlarm(num_of_time_user_set_alarm);
+
+
+
         Toast.makeText(activity, "Successfully added reminder.", Toast.LENGTH_SHORT).show();
     }
 

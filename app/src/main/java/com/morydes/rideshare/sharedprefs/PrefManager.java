@@ -33,7 +33,7 @@ public class PrefManager {
     // Sharedpref file name
     private static final String PREF_NAME = BuildConfig.APPLICATION_ID;
 
-    private static final String KEY_EMAIL_CACHE = "key_email_cache";
+    private static final String KEY_NUM_OF_TIME_USER_SET_ALARM = "num_of_time_user_set_alarm";
 
     public PrefManager(Context context) {
         this._context = context;
@@ -41,16 +41,16 @@ public class PrefManager {
 
     }
 
-    public void setUsernameCache(String obj) {
+    public void setNumberOfTimeUserSetAlarm(int obj) {
         editor = pref.edit();
 
-        editor.putString(KEY_EMAIL_CACHE, obj);
+        editor.putInt(KEY_NUM_OF_TIME_USER_SET_ALARM, obj);
 
         // commit changes
         editor.commit();
     }
-    public String getUsernameCache() {
-        return pref.getString(KEY_EMAIL_CACHE,"");
+    public int getNumberOfTimeUserSetAlarm() {
+        return pref.getInt(KEY_NUM_OF_TIME_USER_SET_ALARM,0);
     }
 
 

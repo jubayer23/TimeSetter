@@ -331,4 +331,17 @@ public class CommonMethods {
 
         return result;
     }
+
+    public static Date convertStringToDate(String date_string, String date_string_format){
+        Date date = null;
+        SimpleDateFormat formatter = new SimpleDateFormat(date_string_format);
+        try {
+            date = formatter.parse(date_string);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return date;
+
+    }
 }

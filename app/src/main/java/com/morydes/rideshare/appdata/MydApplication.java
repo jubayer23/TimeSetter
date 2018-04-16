@@ -7,6 +7,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.ads.MobileAds;
 import com.morydes.rideshare.Utility.DeviceInfoUtils;
 import com.morydes.rideshare.sharedprefs.PrefManager;
 import com.google.gson.Gson;
@@ -40,6 +41,8 @@ public class MydApplication extends Application {
         gson = new Gson();
 
         deviceImieNumber = DeviceInfoUtils.getDeviceImieNumber(this);
+
+        MobileAds.initialize(this, "ca-app-pub-5364782604988219~1333278800");
     }
 
     public static synchronized MydApplication getInstance() {

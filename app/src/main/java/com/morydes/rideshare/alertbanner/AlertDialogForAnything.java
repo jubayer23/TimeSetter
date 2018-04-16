@@ -97,7 +97,7 @@ public class AlertDialogForAnything {
     public static final int  ALERT_TYPE_ERROR = 1;
 
 
-    public static void showNotifyDialog(Context context,int alert_type){
+    public static void showNotifyDialog(Context context,int alert_type,String message){
         final Dialog dialog_start = new Dialog(context,
                 android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         dialog_start.setCancelable(true);
@@ -108,11 +108,11 @@ public class AlertDialogForAnything {
         switch (alert_type){
             case ALERT_TYPE_SUCCESS:
                 ll_container.setBackgroundResource(R.drawable.background_rounded_green);
-                tv_msg.setText("SMS sent successfully!!!");
+                tv_msg.setText(message);
                 break;
             case ALERT_TYPE_ERROR:
                 ll_container.setBackgroundResource(R.drawable.background_rounded_red);
-                tv_msg.setText("There is a error while sending SMS!!!");
+                tv_msg.setText(message);
                 break;
         }
 

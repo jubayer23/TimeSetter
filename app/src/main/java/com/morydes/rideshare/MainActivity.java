@@ -19,6 +19,8 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,6 +32,9 @@ import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
 import com.morydes.rideshare.Utility.CommonMethods;
 import com.morydes.rideshare.Utility.DeviceInfoUtils;
 import com.morydes.rideshare.Utility.GpsEnableTool;
@@ -73,7 +78,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class MainActivity extends BaseActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, View.OnClickListener {
+public class MainActivity extends BaseActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, View.OnClickListener,CompoundButton.OnCheckedChangeListener {
     private GoogleMap mMap;
 
     List<Marker> markers = new ArrayList<>();
@@ -83,6 +88,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     BottomSheetBehavior sheetBehavior;
 
     private List<TimeLocation> timeLocations = new ArrayList<>();
+    private List<TimeLocation> originalTimeLocations = new ArrayList<>();
 
     //bottom sheet ui item
     private TextView tv_num_of_time;
@@ -106,6 +112,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
     private double alarm_lat, alarm_lang;
 
+    private CheckBox ch_only_today;
+
+    private AdView adview_banner;
+    private InterstitialAd mInterstitialAd;
+
+    private static final int botomSheetPeekHeight = 430;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,6 +129,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         init();
 
         initBottomSheetListAdapter();
+
+        loadAdview();
 
         if (getIntent().getStringExtra(GlobalAppAccess.KEY_CALL_FROM) != null &&
                 !getIntent().getStringExtra(GlobalAppAccess.KEY_CALL_FROM).isEmpty() &&
@@ -169,6 +184,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         btn_set_time = (Button) findViewById(R.id.btn_set_time);
         btn_set_time.setOnClickListener(this);
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        ch_only_today = (CheckBox) findViewById(R.id.ch_only_today);
+        ch_only_today.setOnCheckedChangeListener(this);
 
     }
 
@@ -227,6 +245,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         if (alarm_lat != 0 && alarm_lang != 0) {
             LatLng latLng = new LatLng(alarm_lat, alarm_lang);
             zoomToSpecificLocation(latLng);
+            alarm_lat = 0;
+            alarm_lang = 0;
         } else {
             LatLng latLng = new LatLng(lat, lang);
             builder.include(latLng);
@@ -248,6 +268,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     private void placeAllMarkerOfListInMap() {
         int count = 0;
         mMap.clear();
+        hashMapMarker.clear();
+        if(builder == null){
+            builder = new LatLngBounds.Builder();
+        }
 
         for (TimeLocation timeLocation : timeLocations) {
             LatLng latLng = new LatLng(timeLocation.getLat(), timeLocation.getLang());
@@ -319,10 +343,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         }
         timeAdapter.notifyDataSetChanged();
 
-        sheetBehavior.setPeekHeight(240);
+        sheetBehavior.setPeekHeight(botomSheetPeekHeight);
         sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
         return false;
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+
+            Log.d("DEBUG","called check box");
+            updateTimeLocationBasedOnTodayDate(isChecked);
+
     }
 
     @Override
@@ -345,16 +377,64 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     public void toggleBottomSheet() {
 
         if (sheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
-            sheetBehavior.setPeekHeight(240);
+            sheetBehavior.setPeekHeight(botomSheetPeekHeight);
             sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else if (sheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-            sheetBehavior.setPeekHeight(240);
+            sheetBehavior.setPeekHeight(botomSheetPeekHeight);
             sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else if (sheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
             sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         }
     }
 
+    private void updateTimeLocationBasedOnTodayDate(boolean isChecked){
+        showProgressDialog("Loading...",true,false);
+
+        sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        timeLocations.clear();
+
+        if(isChecked){
+            Calendar calender_current = Calendar.getInstance();
+            Calendar calendar_time_location = Calendar.getInstance();
+
+
+
+            for(TimeLocation timeLocation: originalTimeLocations){
+                for(Time time: timeLocation.getTimes()){
+                    Date date_time_location = CommonMethods.convertStringToDate(time.getTime(),"dd/MM/yyyy HH:mm:ss.SSS");
+                    calendar_time_location.setTime(date_time_location);
+
+                    boolean sameDay = calender_current.get(Calendar.YEAR) == calendar_time_location.get(Calendar.YEAR) &&
+                            calender_current.get(Calendar.DAY_OF_YEAR) == calendar_time_location.get(Calendar.DAY_OF_YEAR);
+
+                    if(sameDay){
+                        timeLocations.add(timeLocation);
+                        break;
+                    }
+                }
+            }
+
+        }else{
+            timeLocations.addAll(originalTimeLocations);
+        }
+
+
+
+
+        builder = null;
+        placeAllMarkerOfListInMap();
+
+        dismissProgressDialog();
+
+
+        if(isChecked && timeLocations.isEmpty()){
+            AlertDialogForAnything.showNotifyDialog(this,AlertDialogForAnything.ALERT_TYPE_ERROR,"No point for today!");
+            return;
+        }
+
+        moveMapCameraToLoadAllMarker();
+
+    }
 
     private MarkerOptions getUserClickMarkerOptions(LatLng position) {
         return new MarkerOptions()
@@ -385,7 +465,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         selectedTimePosition = -1;
         dismissProgressDialog();
         updateBottomSheetUi(0);
-        sheetBehavior.setPeekHeight(240);
+        sheetBehavior.setPeekHeight(botomSheetPeekHeight);
         sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
@@ -516,7 +596,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
                         if (timeInfo.getResult()) {
                             timeLocations.clear();
+                            originalTimeLocations.clear();
                             timeLocations.addAll(timeInfo.getTimeLocations());
+                            originalTimeLocations.addAll(timeInfo.getTimeLocations());
                             checkAllPermissionsAndSetUpMap();
 
                         } else {
@@ -561,7 +643,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 new com.android.volley.Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        Log.d("DEBUG", response);
+                        //Log.d("DEBUG", response);
 
 
                         dismissProgressDialog();
@@ -592,6 +674,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                                     userClickMarker = null;
                                     placeLastMarkerOfListInMap();
                                 }
+
+                                showInterstitialAds();
                             } else {
                                 AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Server problem while loading the timeLocations!", false);
                             }
@@ -605,38 +689,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
             @Override
             public void onErrorResponse(VolleyError error) {
                 dismissProgressDialog();
-
-                JSONObject jsonObject = null;
-                try {
-                    jsonObject = new JSONObject(getInsertTimeDummyResponse());
-                    boolean result = jsonObject.getBoolean("Result");
-
-                    if (result) {
-                        Time time = new Time();
-                        time.setId(Integer.valueOf(jsonObject.getString("id")));
-                        time.setDeviceId(deviceId);
-                        time.setTime(setTime);
-                        if (selectedTimePosition != -1) {
-                            timeLocations.get(selectedTimePosition).getTimes().add(time);
-                            timeAdapter.notifyDataSetChanged();
-                        } else {
-                            TimeLocation timeLocation = new TimeLocation();
-                            timeLocation.setLat(lat);
-                            timeLocation.setLang(lang);
-                            List<Time> times = new ArrayList<>();
-                            times.add(time);
-                            timeLocation.setTimes(times);
-                            timeLocations.add(timeLocation);
-                            userClickMarker.remove();
-                            userClickMarker = null;
-                            placeLastMarkerOfListInMap();
-                        }
-
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
             }
         }) {
             @Override
@@ -657,6 +709,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         // TODO Auto-generated method stub
         MydApplication.getInstance().addToRequestQueue(req);
     }
+
 
     /**
      * Demonstrates customizing the info window and/or its contents.
@@ -897,7 +950,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                             zoomToSpecificLocation(nearByPlaceLatLng);
                             userClickMarker.showInfoWindow();
                         } else {
-                            Toast.makeText(MainActivity.this, "Invalid selection!!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.this, "wrong location - Please select a pick up zone!", Toast.LENGTH_LONG).show();
                         }
 
 
@@ -915,4 +968,29 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         MydApplication.getInstance().addToRequestQueue(req);
     }
 
+
+
+
+    private void loadAdview(){
+        adview_banner = findViewById(R.id.adview_banner);
+        AdRequest adRequestBanner = new AdRequest.Builder()
+                .addTestDevice("554FD1C059BF37BF1981C59FF9E1DAE0")
+                .build();
+        adview_banner.loadAd(adRequestBanner);
+
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+        AdRequest adRequestInterstitial = new AdRequest.Builder().addTestDevice(
+                "554FD1C059BF37BF1981C59FF9E1DAE0").build();
+        mInterstitialAd.loadAd(adRequestInterstitial);
+    }
+
+    public void showInterstitialAds(){
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        } else {
+            Log.d("TAG", "The interstitial wasn't loaded yet.");
+        }
+    }
 }
