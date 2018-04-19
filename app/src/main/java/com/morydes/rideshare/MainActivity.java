@@ -45,6 +45,7 @@ import com.morydes.rideshare.adapter.TimeAdapter;
 import com.morydes.rideshare.alertbanner.AlertDialogForAnything;
 import com.morydes.rideshare.appdata.GlobalAppAccess;
 import com.morydes.rideshare.appdata.MydApplication;
+import com.morydes.rideshare.billingUtil.IabBroadcastReceiver;
 import com.morydes.rideshare.fragment.DatePickerFragment;
 import com.morydes.rideshare.fragment.TimePickerFragment;
 import com.morydes.rideshare.model.NearByPlaceInfo;
@@ -78,7 +79,8 @@ import java.util.List;
 import java.util.Map;
 
 
-public class MainActivity extends BaseActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, View.OnClickListener,CompoundButton.OnCheckedChangeListener {
+public class MainActivity extends BaseActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, View.OnClickListener,CompoundButton.OnCheckedChangeListener,
+IabBroadcastReceiver.IabBroadcastListener{
     private GoogleMap mMap;
 
     List<Marker> markers = new ArrayList<>();
@@ -119,10 +121,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
     private static final int botomSheetPeekHeight = 430;
 
+    private BillingHelper billingHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        billingHelper = new BillingHelper(this);
+        billingHelper.initiateBillingConfiguration();
 
         initToolbar();
 
@@ -710,6 +717,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         MydApplication.getInstance().addToRequestQueue(req);
     }
 
+    @Override
+    public void receivedBroadcast() {
+        billingHelper.receivedBroadcast();
+    }
+
 
     /**
      * Demonstrates customizing the info window and/or its contents.
@@ -789,52 +801,71 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == GpsEnableTool.REQUEST_CHECK_SETTINGS) {
-            switch (resultCode) {
-                case Activity.RESULT_OK: {
-                    showProgressDialog("please wait..", true, false);
-                    UserLastKnownLocation.LocationResult locationResult = new UserLastKnownLocation.LocationResult() {
-                        @Override
-                        public void gotLocation(Location location) {
-                            dismissProgressDialog();
+       // Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
 
-                            placeAllMarkersAndPlacementCamera(location.getLatitude(), location.getLongitude());
+        if (billingHelper.getmHelper() == null) return;
+
+        // Pass on the activity result to the helper for handling
+        if (!billingHelper.getmHelper().handleActivityResult(requestCode, resultCode, data)) {
+            // not handled, so handle it ourselves (here's where you'd
+            // perform any handling of activity results not related to in-app
+            // billing...
+            if (requestCode == GpsEnableTool.REQUEST_CHECK_SETTINGS) {
+                switch (resultCode) {
+                    case Activity.RESULT_OK: {
+                        showProgressDialog("please wait..", true, false);
+                        UserLastKnownLocation.LocationResult locationResult = new UserLastKnownLocation.LocationResult() {
+                            @Override
+                            public void gotLocation(Location location) {
+                                dismissProgressDialog();
+
+                                placeAllMarkersAndPlacementCamera(location.getLatitude(), location.getLongitude());
 
 
-                        }
-                    };
-                    UserLastKnownLocation myLocation = new UserLastKnownLocation();
-                    myLocation.getLocation(this, locationResult);
+                            }
+                        };
+                        UserLastKnownLocation myLocation = new UserLastKnownLocation();
+                        myLocation.getLocation(this, locationResult);
 
-                    break;
+                        break;
+                    }
+                    case Activity.RESULT_CANCELED: {
+                        // The user was asked to change settings, but chose not to
+                        Toast.makeText(MainActivity.this, "Location not enabled, user cancelled.", Toast.LENGTH_LONG).show();
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
                 }
-                case Activity.RESULT_CANCELED: {
-                    // The user was asked to change settings, but chose not to
-                    Toast.makeText(MainActivity.this, "Location not enabled, user cancelled.", Toast.LENGTH_LONG).show();
-                    break;
-                }
-                default: {
-                    break;
+
+            }
+            if (requestCode == PLACE_PICKER_REQUEST) {
+                if (resultCode == RESULT_OK) {
+                    Place place = PlacePicker.getPlace(data, this);
+                    String toastMsg = String.format("Place: %s", place.getName());
+                    Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
+                    if (userClickMarker != null) {
+                        userClickMarker.remove();
+                    }
+                    userClickMarker = mMap.addMarker(getUserClickMarkerOptions(place.getLatLng(), String.valueOf(place.getName())));
+                    onMarkerClick(userClickMarker);
+                    zoomToSpecificLocation(place.getLatLng());
+                    userClickMarker.showInfoWindow();
                 }
             }
-
+            super.onActivityResult(requestCode, resultCode, data);
         }
-        if (requestCode == PLACE_PICKER_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlacePicker.getPlace(data, this);
-                String toastMsg = String.format("Place: %s", place.getName());
-                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
-                if (userClickMarker != null) {
-                    userClickMarker.remove();
-                }
-                userClickMarker = mMap.addMarker(getUserClickMarkerOptions(place.getLatLng(), String.valueOf(place.getName())));
-                onMarkerClick(userClickMarker);
-                zoomToSpecificLocation(place.getLatLng());
-                userClickMarker.showInfoWindow();
-            }
+        else {
+            //Log.d(TAG, "onActivityResult handled by IABUtil.");
         }
     }
+
+  /*  @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+    }*/
 
 
 /*    public boolean onCreateOptionsMenu(Menu paramMenu) {
