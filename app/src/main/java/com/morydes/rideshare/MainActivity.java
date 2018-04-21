@@ -123,6 +123,8 @@ IabBroadcastReceiver.IabBroadcastListener{
 
     private BillingHelper billingHelper;
 
+    private boolean isUserHasAlreadyPin = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -369,6 +371,12 @@ IabBroadcastReceiver.IabBroadcastListener{
         int id = view.getId();
 
         if (id == R.id.btn_set_time) {
+
+            if(isUserHasAlreadyPin && !billingHelper.getIsPremium()){
+                showDialogForPremium();
+                return;
+            }
+
             if (prevClickedMarker == null) return;
             double lat = prevClickedMarker.getPosition().latitude;
             double lang = prevClickedMarker.getPosition().longitude;
@@ -606,6 +614,15 @@ IabBroadcastReceiver.IabBroadcastListener{
                             originalTimeLocations.clear();
                             timeLocations.addAll(timeInfo.getTimeLocations());
                             originalTimeLocations.addAll(timeInfo.getTimeLocations());
+                            for(TimeLocation timeLocation: originalTimeLocations){
+                                for(Time time: timeLocation.getTimes()){
+                                    if (MydApplication.deviceImieNumber.equals(time.getDeviceId())){
+                                        isUserHasAlreadyPin = true;
+                                        break;
+                                    }
+                                }
+                                if(isUserHasAlreadyPin)break;
+                            }
                             checkAllPermissionsAndSetUpMap();
 
                         } else {
@@ -934,7 +951,7 @@ IabBroadcastReceiver.IabBroadcastListener{
         String location = latLng.latitude + "," + latLng.longitude;
 
         String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?type=point_of_interest&rankby=distance&location=" + location + "&sensor=false&key=AIzaSyCHsF72opxJ7MfM5dqq4z_-2ujjujukI3E";
-        Log.d("DEBUG", url);
+       // Log.d("DEBUG", url);
         //url = url + "?" + "email=" + email + "&password=" + password;
         // TODO Auto-generated method stub
         showProgressDialog("Loading..", true, false);
@@ -1000,6 +1017,41 @@ IabBroadcastReceiver.IabBroadcastListener{
     }
 
 
+    private void showDialogForPremium(){
+        final Dialog dialog_start = new Dialog(this,
+                android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        dialog_start.setCancelable(true);
+        dialog_start.setContentView(R.layout.dialog_premium_user_alert);
+
+        final Button btn_cancel = (Button) dialog_start.findViewById(R.id.btn_cancel);
+        final Button btn_subscribe = (Button) dialog_start.findViewById(R.id.btn_subscribe);
+        ImageView img_close_dialog = (ImageView) dialog_start.findViewById(R.id.img_close_dialog);
+
+
+        btn_subscribe.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                billingHelper.onUpgradeAppButtonClicked();
+            }
+        });
+
+
+        img_close_dialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog_start.dismiss();
+            }
+        });
+
+        btn_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog_start.dismiss();
+            }
+        });
+
+        dialog_start.show();
+    }
 
 
     private void loadAdview(){

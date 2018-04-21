@@ -5,6 +5,7 @@ import android.content.IntentFilter;
 import android.util.Log;
 import android.view.View;
 
+import com.morydes.rideshare.alertbanner.AlertDialogForAnything;
 import com.morydes.rideshare.billingUtil.IabBroadcastReceiver;
 import com.morydes.rideshare.billingUtil.IabHelper;
 import com.morydes.rideshare.billingUtil.IabResult;
@@ -192,6 +193,7 @@ public class BillingHelper {
                 mIsPremium = true;
                // updateUi();
                 setWaitScreen(false);
+                AlertDialogForAnything.showNotifyDialog(activity,AlertDialogForAnything.ALERT_TYPE_SUCCESS,"You successfully subscribed!");
             }
         }
     };
