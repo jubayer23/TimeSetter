@@ -2,6 +2,7 @@ package com.morydes.rideshare;
 
 import android.app.Activity;
 import android.content.IntentFilter;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
@@ -11,6 +12,9 @@ import com.morydes.rideshare.billingUtil.IabHelper;
 import com.morydes.rideshare.billingUtil.IabResult;
 import com.morydes.rideshare.billingUtil.Inventory;
 import com.morydes.rideshare.billingUtil.Purchase;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by jubayer on 4/19/2018.
@@ -29,6 +33,10 @@ public class BillingHelper {
 
     // Does the user have the premium upgrade?
    private boolean mIsPremium = false;
+    // Does the user have an active subscription to the infinite gas plan?
+    boolean mSubscribedToInfiniteGas = false;
+    // Will the subscription auto-renew?
+    boolean mAutoRenewEnabled = false;
 
     /* base64EncodedPublicKey should be YOUR APPLICATION'S PUBLIC KEY
  * (that you got from the Google Play developer console). This is not your
@@ -44,6 +52,10 @@ public class BillingHelper {
     String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAthXx72yUbA+MDl4BWSkELZ3h3uIQ5bPQoVH08o4C2Qu6gJVw+XGbBf1F8HoREONLTg4OpWs6w+UvnUZHmeKgm5Zf0HXKTFaQDqE57X/n3Pchhc+kJB9vOMvPdPWE+TEfuNnLg8o1urHn1mbMCc6c60n870MS1aDc8fNRYgMc5iW2yGuVeZ5jTj7ywy6A/cTaK/MrsEEiEsXygQety8KSIi0bnLwdkXcVctXgs3TUtWrN/YGcD/dnknIaXWcdrjCsnML5GxgRjTxKP82Q3PgmoWYUY/ekXx+mlqTydA6V+IcOOM+yWsBbZS5s0XMnvRx+W5NTxkC81lB9JRk9gc77bQIDAQAB";
     // SKUs for our products: the premium upgrade (non-consumable) and gas (consumable)
     static final String SKU_PREMIUM = "premium";
+    // SKU for our subscription (infinite gas)
+    static final String SKU_INFINITE_GAS_MONTHLY = "infinite_gas_monthly";
+    // Tracks the currently owned infinite gas SKU, and the options in the Manage dialog
+    String mInfiniteGasSku = "";
 
     // (arbitrary) request code for the purchase flow
     static final int RC_REQUEST = 10001;
@@ -135,7 +147,21 @@ public class BillingHelper {
             mIsPremium = (premiumPurchase != null && verifyDeveloperPayload(premiumPurchase));
             Log.d(TAG, "User is " + (mIsPremium ? "PREMIUM" : "NOT PREMIUM"));
 
+            // First find out which subscription is auto renewing
+            Purchase gasMonthly = inventory.getPurchase(SKU_INFINITE_GAS_MONTHLY);
+            if (gasMonthly != null && gasMonthly.isAutoRenewing()) {
+                mAutoRenewEnabled = true;
+                mInfiniteGasSku = SKU_INFINITE_GAS_MONTHLY;
+            }else {
+                mAutoRenewEnabled = false;
+                mInfiniteGasSku = "";
+            }
 
+            // The user is subscribed if either subscription exists, even if neither is auto
+            // renewing
+            mSubscribedToInfiniteGas = (gasMonthly != null && verifyDeveloperPayload(gasMonthly));
+            Log.d(TAG, "User " + (mSubscribedToInfiniteGas ? "HAS" : "DOES NOT HAVE")
+                    + " infinite gas subscription.");
 
             //updateUi();
             setWaitScreen(false);
@@ -146,19 +172,49 @@ public class BillingHelper {
 
     // User clicked the "Upgrade to Premium" button.
     public void onUpgradeAppButtonClicked() {
-        Log.d(TAG, "Upgrade button clicked; launching purchase flow for upgrade.");
+       /* Log.d(TAG, "Upgrade button clicked; launching purchase flow for upgrade.");
         setWaitScreen(true);
 
 
 
-        /* TODO: for security, generate your payload here for verification. See the comments on
+        *//* TODO: for security, generate your payload here for verification. See the comments on
          *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
-         *        an empty string, but on a production app you should carefully generate this. */
+         *        an empty string, but on a production app you should carefully generate this. *//*
         String payload = "";
 
         try {
             mHelper.launchPurchaseFlow(activity, SKU_PREMIUM, RC_REQUEST,
                     mPurchaseFinishedListener, payload);
+        } catch (IabHelper.IabAsyncInProgressException e) {
+            //complain("Error launching purchase flow. Another async operation in progress.");
+            setWaitScreen(false);
+        }*/
+        if (!mHelper.subscriptionsSupported()) {
+            AlertDialogForAnything.showNotifyDialog(activity,AlertDialogForAnything.ALERT_TYPE_ERROR,"Subscriptions not supported on your device yet. Sorry!");
+            return;
+        }
+
+        if(mSubscribedToInfiniteGas || mAutoRenewEnabled){
+            AlertDialogForAnything.showNotifyDialog(activity,AlertDialogForAnything.ALERT_TYPE_ERROR,"You already have Subscriptions!");
+            return;
+        }
+
+        String payload = "";
+
+        List<String> oldSkus = null;
+        if (!TextUtils.isEmpty(mInfiniteGasSku)
+                && !mInfiniteGasSku.equals(SKU_INFINITE_GAS_MONTHLY)) {
+            // The user currently has a valid subscription, any purchase action is going to
+            // replace that subscription
+            oldSkus = new ArrayList<String>();
+            oldSkus.add(mInfiniteGasSku);
+        }
+
+        setWaitScreen(true);
+        Log.d(TAG, "Launching purchase flow for gas subscription.");
+        try {
+            mHelper.launchPurchaseFlow(activity, SKU_INFINITE_GAS_MONTHLY, IabHelper.ITEM_TYPE_SUBS,
+                    oldSkus, RC_REQUEST, mPurchaseFinishedListener, payload);
         } catch (IabHelper.IabAsyncInProgressException e) {
             //complain("Error launching purchase flow. Another async operation in progress.");
             setWaitScreen(false);
@@ -192,6 +248,18 @@ public class BillingHelper {
                 //alert("Thank you for upgrading to premium!");
                 mIsPremium = true;
                // updateUi();
+                setWaitScreen(false);
+                AlertDialogForAnything.showNotifyDialog(activity,AlertDialogForAnything.ALERT_TYPE_SUCCESS,"You successfully subscribed!");
+            }
+            else if (purchase.getSku().equals(SKU_INFINITE_GAS_MONTHLY)) {
+                // bought the infinite gas subscription
+                Log.d(TAG, "Infinite gas subscription purchased.");
+               // alert("Thank you for subscribing to infinite gas!");
+                mSubscribedToInfiniteGas = true;
+                mAutoRenewEnabled = purchase.isAutoRenewing();
+                mInfiniteGasSku = purchase.getSku();
+                //mTank = TANK_MAX;
+                //updateUi();
                 setWaitScreen(false);
                 AlertDialogForAnything.showNotifyDialog(activity,AlertDialogForAnything.ALERT_TYPE_SUCCESS,"You successfully subscribed!");
             }
@@ -232,7 +300,7 @@ public class BillingHelper {
 
     // Enables or disables the "please wait" screen.
     void setWaitScreen(boolean set) {
-        if(true){
+        if(set){
             ((MainActivity) activity).showProgressDialog("please wait..",true,false);
         }else{
             ((MainActivity) activity).dismissProgressDialog();
@@ -243,7 +311,11 @@ public class BillingHelper {
         return mHelper;
     }
 
-    public boolean getIsPremium(){
+    public boolean getIsPremium() {
         return mIsPremium;
+    }
+
+    public boolean getIsSubscribed() {
+        return mSubscribedToInfiniteGas;
     }
 }

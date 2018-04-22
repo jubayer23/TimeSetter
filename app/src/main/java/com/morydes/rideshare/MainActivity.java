@@ -153,8 +153,9 @@ IabBroadcastReceiver.IabBroadcastListener{
 
         if (savedInstanceState == null) {
 
+            showWelcomeDialogue();
 
-            sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
+            //sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
 
         }
         //https://blog.mapbox.com/how-to-build-a-location-picker-for-your-app-8e61be7fc9cc
@@ -274,7 +275,7 @@ IabBroadcastReceiver.IabBroadcastListener{
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));*/
     }
 
-    private void placeAllMarkerOfListInMap() {
+    private int placeAllMarkerOfListInMap() {
         int count = 0;
         mMap.clear();
         hashMapMarker.clear();
@@ -289,6 +290,8 @@ IabBroadcastReceiver.IabBroadcastListener{
             hashMapMarker.put(marker, count);
             count++;
         }
+
+        return count;
     }
 
     private void placeLastMarkerOfListInMap() {
@@ -372,7 +375,9 @@ IabBroadcastReceiver.IabBroadcastListener{
 
         if (id == R.id.btn_set_time) {
 
-            if(isUserHasAlreadyPin && !billingHelper.getIsPremium()){
+            //Log.d("DEBUG", String.valueOf(billingHelper.getIsPremium()));
+
+            if(isUserHasAlreadyPin && !billingHelper.getIsSubscribed()){
                 showDialogForPremium();
                 return;
             }
@@ -437,7 +442,7 @@ IabBroadcastReceiver.IabBroadcastListener{
 
 
         builder = null;
-        placeAllMarkerOfListInMap();
+        int numOfMarker = placeAllMarkerOfListInMap();
 
         dismissProgressDialog();
 
@@ -447,7 +452,10 @@ IabBroadcastReceiver.IabBroadcastListener{
             return;
         }
 
-        moveMapCameraToLoadAllMarker();
+        if(numOfMarker > 0){
+            moveMapCameraToLoadAllMarker();
+        }
+
 
     }
 
@@ -679,6 +687,7 @@ IabBroadcastReceiver.IabBroadcastListener{
                             boolean result = jsonObject.getBoolean("Result");
 
                             if (result) {
+                                isUserHasAlreadyPin = true;
                                 Time time = new Time();
                                 time.setId(Integer.valueOf(jsonObject.getString("Id")));
                                 time.setDeviceId(deviceId);
@@ -1053,6 +1062,26 @@ IabBroadcastReceiver.IabBroadcastListener{
         dialog_start.show();
     }
 
+    private void showWelcomeDialogue(){
+        final Dialog dialog_start = new Dialog(this,
+                android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        dialog_start.setCancelable(true);
+        dialog_start.setContentView(R.layout.dialog_welcome_screen);
+
+        final Button btn_ok = (Button) dialog_start.findViewById(R.id.btn_ok);
+
+
+        btn_ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog_start.dismiss();
+                sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
+            }
+        });
+
+
+        dialog_start.show();
+    }
 
     private void loadAdview(){
         adview_banner = findViewById(R.id.adview_banner);
@@ -1075,5 +1104,9 @@ IabBroadcastReceiver.IabBroadcastListener{
         } else {
             Log.d("TAG", "The interstitial wasn't loaded yet.");
         }
+    }
+
+    public void changeUserPinFlagToFalse(){
+        isUserHasAlreadyPin = false;
     }
 }

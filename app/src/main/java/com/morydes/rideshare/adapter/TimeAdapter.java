@@ -265,7 +265,7 @@ public class TimeAdapter extends RecyclerView.Adapter<TimeAdapter.MyViewHolder> 
                                     ((MainActivity) activity).updateBottomSheetUi(num_of_time_set);
                                     notifyDataSetChanged();
                                 }
-
+                                ((MainActivity) activity).changeUserPinFlagToFalse();
 
                             } else {
                                 AlertDialogForAnything.showAlertDialogWhenComplte(activity, "Error", "Server problem while loading the timeLocations!", false);
