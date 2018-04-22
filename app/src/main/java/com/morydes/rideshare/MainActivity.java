@@ -18,12 +18,14 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -514,6 +516,16 @@ IabBroadcastReceiver.IabBroadcastListener{
         final TextView tv_set_time = (TextView) dialog_start.findViewById(R.id.tv_set_time);
         Button btn_submit = (Button) dialog_start.findViewById(R.id.btn_submit);
         ImageView img_close_dialog = (ImageView) dialog_start.findViewById(R.id.img_close_dialog);
+        final Spinner sp_rideshare = (Spinner) dialog_start.findViewById(R.id.sp_rideshare);
+        final Spinner sp_seats = (Spinner) dialog_start.findViewById(R.id.sp_seats);
+
+        ArrayAdapter<String> dataAdapter_rideshare = new ArrayAdapter<String>
+                (this, R.layout.spinner_item, GlobalAppAccess.rideshares_options);
+        sp_rideshare.setAdapter(dataAdapter_rideshare);
+
+        ArrayAdapter<String> dataAdapter_seats = new ArrayAdapter<String>
+                (this, R.layout.spinner_item, GlobalAppAccess.seats_options);
+        sp_seats.setAdapter(dataAdapter_seats);
 
         final Calendar calendar = Calendar.getInstance();
         calendar.clear();
@@ -579,9 +591,12 @@ IabBroadcastReceiver.IabBroadcastListener{
                         return;
                     }
 
+                    String rideShare = sp_rideshare.getSelectedItem().toString();
+                    String seats = sp_seats.getSelectedItem().toString();
+
                     String timeFormat = CommonMethods.formatDate(date, "dd/MM/yyyy HH:mm:ss.SSS");
                     String deviceTimeFormat = CommonMethods.formatDate(currentTime, "dd/MM/yyyy HH:mm:ss.SSS");
-                    sentRequestToInsertTime(GlobalAppAccess.URL_INSERT_TIME, lat, lang, MydApplication.deviceImieNumber, timeFormat, deviceTimeFormat);
+                    sentRequestToInsertTime(GlobalAppAccess.URL_INSERT_TIME, lat, lang, MydApplication.deviceImieNumber, timeFormat, deviceTimeFormat,rideShare,seats);
                     dialog_start.dismiss();
                 }
             }
@@ -665,7 +680,8 @@ IabBroadcastReceiver.IabBroadcastListener{
     }
 
     public void sentRequestToInsertTime(String url, final double lat, final double lang,
-                                        final String deviceId, final String setTime, final String deviceTime) {
+                                        final String deviceId, final String setTime, final String deviceTime,
+                                        String rideShare, String seats) {
 
         //url = url + "?" + "email=" + email + "&password=" + password;
         // TODO Auto-generated method stub

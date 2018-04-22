@@ -127,7 +127,7 @@ public class TimeAdapter extends RecyclerView.Adapter<TimeAdapter.MyViewHolder> 
         ImageView img_close_dialog = (ImageView) dialog_start.findViewById(R.id.img_close_dialog);
 
         ArrayAdapter<String> dataAdapter_pillars_name = new ArrayAdapter<String>
-                (activity, R.layout.spinner_item, GlobalAppAccess.reminder_time);
+                (activity, R.layout.spinner_item, GlobalAppAccess.reminder_time_options);
         sp_time.setAdapter(dataAdapter_pillars_name);
 
 

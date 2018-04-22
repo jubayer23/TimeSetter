@@ -35,7 +35,11 @@ public class GlobalAppAccess {
 
     public static final String TAG_ALARM_RECEIVER = "alarm_receiver";
 
-    public static final String[] reminder_time = {"Select a time", "Before time expires", "15 mins before",
+    public static final String[] reminder_time_options = {"Select a time", "Before time expires", "15 mins before",
             "30 mins before","1 hour before"};
+
+    public static final String[] rideshares_options = {"Uber", "Lyft", "Uber or Lyft"};
+
+    public static final String[] seats_options = {"4 Seats", "5 Seats"};
 
 }
