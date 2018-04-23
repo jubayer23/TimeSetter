@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -75,6 +76,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -143,19 +145,33 @@ IabBroadcastReceiver.IabBroadcastListener{
 
         loadAdview();
 
-        if (getIntent().getStringExtra(GlobalAppAccess.KEY_CALL_FROM) != null &&
-                !getIntent().getStringExtra(GlobalAppAccess.KEY_CALL_FROM).isEmpty() &&
-                getIntent().getStringExtra(GlobalAppAccess.KEY_CALL_FROM).equals(GlobalAppAccess.TAG_ALARM_RECEIVER)) {
-            alarm_lat = getIntent().getDoubleExtra("lat", 0);
-            alarm_lang = getIntent().getDoubleExtra("lang", 0);
-        } else {
-            alarm_lat = 0;
-            alarm_lang = 0;
-        }
-
         if (savedInstanceState == null) {
 
-            showWelcomeDialogue();
+            Intent intent = getIntent();
+
+            String error_type = intent.getStringExtra(SplashActivity.KEY_ERROR);
+            alarm_lat = intent.getDoubleExtra("lat", 0);
+            alarm_lang = intent.getDoubleExtra("lang", 0);
+
+            if(!error_type.equals(SplashActivity.ERROR_TYPE_NETWORK_PROBLEM)){
+
+                originalTimeLocations =  intent.getExtras().getParcelableArrayList(SplashActivity.KEY_TIMELOCATIONS);
+                timeLocations.addAll(originalTimeLocations);
+
+                isUserHasAlreadyPin = intent.getBooleanExtra(SplashActivity.KEY_IS_USER_HAS_PIN,false);
+
+                if(alarm_lat == 0 && alarm_lang == 0){
+                    showWelcomeDialogue();
+                }else{
+                    checkAllPermissionsAndSetUpMap();
+                }
+            }else{
+                  AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Network problem. please try again!", false);
+
+            }
+
+
+
 
             //sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
 
@@ -1098,7 +1114,8 @@ IabBroadcastReceiver.IabBroadcastListener{
             @Override
             public void onClick(View view) {
                 dialog_start.dismiss();
-                sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
+                //sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
+                checkAllPermissionsAndSetUpMap();
             }
         });
 
