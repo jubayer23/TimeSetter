@@ -110,19 +110,23 @@ public class TimeAdapter extends RecyclerView.Adapter<TimeAdapter.MyViewHolder> 
         holder.btn_set_alarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showReminderDialog(event.getTime(),timeLocation.getLat(), timeLocation.getLang());
+                showReminderDialog(event.getTime(),timeLocation.getLat(), timeLocation.getLang(), event.getRideshare(), event.getSeats());
             }
         });
 
     }
 
-    private void showReminderDialog(final String time_of_the_marker, final double lat, final double lang) {
+    private void showReminderDialog(final String time_of_the_marker, final double lat, final double lang, String rideshare, String seats) {
         final Dialog dialog_start = new Dialog(activity,
                 android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         dialog_start.setCancelable(true);
         dialog_start.setContentView(R.layout.dialog_set_reminder_2);
 
         final Spinner sp_time = (Spinner) dialog_start.findViewById(R.id.sp_time);
+        final TextView tv_rideshare = (TextView) dialog_start.findViewById(R.id.tv_rideshare);
+        tv_rideshare.setText(rideshare);
+        final TextView tv_seats = (TextView) dialog_start.findViewById(R.id.tv_seats);
+        tv_seats.setText(seats);
         Button btn_submit = (Button) dialog_start.findViewById(R.id.btn_submit);
         ImageView img_close_dialog = (ImageView) dialog_start.findViewById(R.id.img_close_dialog);
 

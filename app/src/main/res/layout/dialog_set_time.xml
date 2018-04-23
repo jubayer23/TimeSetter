@@ -36,14 +36,28 @@
             android:layout_marginTop="10dp"
             android:text="Set Time"
             android:textColor="@color/black"
+            android:textStyle="bold"
             android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_sub_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="*We aim to improve your chances of getting a ride but we can't guarantee it.*"
+            android:textColor="@color/black"
+            android:layout_below="@+id/tv_header"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginLeft="10dp"
+            android:gravity="center"
+            android:textSize="15sp"/>
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tv_header"
-            android:layout_marginTop="40dp"
+            android:layout_below="@+id/tv_sub_header"
+            android:layout_marginTop="10dp"
             android:layout_marginLeft="20dp"
             android:orientation="vertical">
 
@@ -53,15 +67,18 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="wrap_content"
+
                     android:layout_height="wrap_content"
                     android:text="Date : "
+                    android:layout_width="0dp"
+                    android:layout_weight="4"
                     android:textColor="@color/black"
                     android:textSize="25sp" />
 
                 <TextView
                     android:id="@+id/tv_set_date"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="6"
                     android:layout_height="wrap_content"
                     android:text="Set date"
                     android:textColor="@color/blue"
@@ -76,7 +93,8 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="4"
                     android:layout_height="wrap_content"
                     android:text="Time : "
                     android:textColor="@color/black"
@@ -84,7 +102,8 @@
 
                 <TextView
                     android:id="@+id/tv_set_time"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="6"
                     android:layout_height="wrap_content"
                     android:text="Set time"
                     android:textColor="@color/blue"
@@ -100,14 +119,16 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="4"
                     android:layout_height="wrap_content"
                     android:text="Rideshare : "
                     android:textColor="@color/black"
                     android:textSize="25sp" />
 
                 <RelativeLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
+                    android:layout_weight="6"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
                     android:background="@drawable/btn_common_tranparent">
@@ -138,14 +159,16 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="4"
                     android:layout_height="wrap_content"
                     android:text="Seats : "
                     android:textColor="@color/black"
                     android:textSize="25sp" />
 
                 <RelativeLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
+                    android:layout_weight="6"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
                     android:background="@drawable/btn_common_tranparent">

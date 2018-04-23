@@ -681,7 +681,7 @@ IabBroadcastReceiver.IabBroadcastListener{
 
     public void sentRequestToInsertTime(String url, final double lat, final double lang,
                                         final String deviceId, final String setTime, final String deviceTime,
-                                        String rideShare, String seats) {
+                                        final String rideShare, final String seats) {
 
         //url = url + "?" + "email=" + email + "&password=" + password;
         // TODO Auto-generated method stub
@@ -708,6 +708,8 @@ IabBroadcastReceiver.IabBroadcastListener{
                                 time.setId(Integer.valueOf(jsonObject.getString("Id")));
                                 time.setDeviceId(deviceId);
                                 time.setTime(setTime);
+                                time.setRideshare(rideShare);
+                                time.setSeats(seats);
                                 if (selectedTimePosition != -1) {
                                     timeLocations.get(selectedTimePosition).getTimes().add(time);
                                     timeAdapter.notifyDataSetChanged();
@@ -749,6 +751,10 @@ IabBroadcastReceiver.IabBroadcastListener{
                 params.put("deviceId", deviceId);
                 params.put("time", setTime);
                 params.put("deviceTime", deviceTime);
+                params.put("rideshare", rideShare);
+                params.put("seats", seats);
+                /*Log.d("DEBUG",rideShare);
+                Log.d("DEBUG",seats);*/
                 return params;
             }
         };
@@ -1056,6 +1062,7 @@ IabBroadcastReceiver.IabBroadcastListener{
         btn_subscribe.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                dialog_start.dismiss();
                 billingHelper.onUpgradeAppButtonClicked();
             }
         });

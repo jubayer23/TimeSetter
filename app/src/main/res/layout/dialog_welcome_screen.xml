@@ -37,6 +37,7 @@
             android:layout_marginTop="10dp"
             android:text="Welcome To MoRydes"
             android:textColor="@color/black"
+            android:textStyle="bold"
             android:textSize="18sp" />
 
 
@@ -51,6 +52,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/black"
                 android:text="We aim to improve your chances for getting rides.\n\nRiders: Can schedule rides days in advance\n\nDrivers: Can set reminders to get notified before the rides needed\n\n*Let your favorite drivers know. You'll be setting up rydes with MoRydes." />
 
         </LinearLayout>
