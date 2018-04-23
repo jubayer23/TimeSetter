@@ -6,6 +6,7 @@ import android.os.CountDownTimer;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -47,8 +48,7 @@ public class SplashActivity extends BaseActivity {
         setContentView(R.layout.activity_splash);
 
         Intent intent = getIntent();
-        double alarm_lat = 0;
-        double alarm_lang = 0;
+        double alarm_lat,alarm_lang;
         if (intent.getStringExtra(GlobalAppAccess.KEY_CALL_FROM) != null &&
                 !intent.getStringExtra(GlobalAppAccess.KEY_CALL_FROM).isEmpty() &&
                 intent.getStringExtra(GlobalAppAccess.KEY_CALL_FROM).equals(GlobalAppAccess.TAG_ALARM_RECEIVER)) {
@@ -89,7 +89,7 @@ public class SplashActivity extends BaseActivity {
                         intent.putExtra("lat", lat);
                         intent.putExtra("lang", lang);
 
-                        List<TimeLocation> timeLocations = new ArrayList<>();
+                        ArrayList<TimeLocation> timeLocations = new ArrayList<>();
                         boolean isUserHasAlreadyPin = false;
 
 
@@ -116,12 +116,10 @@ public class SplashActivity extends BaseActivity {
 
 
                         intent.putExtra(KEY_IS_USER_HAS_PIN, isUserHasAlreadyPin);
-                        Bundle bundle = new Bundle();
-                        bundle.putParcelableArrayList(KEY_TIMELOCATIONS, (ArrayList<? extends Parcelable>) timeLocations);
-                        //intent.putParcelableArrayListExtra(KEY_TIMELOCATIONS, (ArrayList<? extends Parcelable>) timeLocations);
-                        intent.putExtras(bundle);
+                        intent.putExtra(KEY_TIMELOCATIONS, MydApplication.gson.toJson(timeLocations));
 
                         startActivity(intent);
+                        finish();
 
 
                     }
@@ -135,6 +133,7 @@ public class SplashActivity extends BaseActivity {
                 intent.putExtra("lang", lang);
                 intent.putExtra(KEY_ERROR, ERROR_TYPE_NETWORK_PROBLEM);
                 startActivity(intent);
+                finish();
 
                /* AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Network problem. please try again!", false);*/
                /* String response = getTimesResponseDummy();

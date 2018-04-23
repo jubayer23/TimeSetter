@@ -71,14 +71,14 @@
                     android:layout_height="wrap_content"
                     android:text="Date : "
                     android:layout_width="0dp"
-                    android:layout_weight="4"
+                    android:layout_weight="5"
                     android:textColor="@color/black"
                     android:textSize="25sp" />
 
                 <TextView
                     android:id="@+id/tv_set_date"
                     android:layout_width="0dp"
-                    android:layout_weight="6"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:text="Set date"
                     android:textColor="@color/blue"
@@ -94,7 +94,7 @@
 
                 <TextView
                     android:layout_width="0dp"
-                    android:layout_weight="4"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:text="Time : "
                     android:textColor="@color/black"
@@ -103,7 +103,7 @@
                 <TextView
                     android:id="@+id/tv_set_time"
                     android:layout_width="0dp"
-                    android:layout_weight="6"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:text="Set time"
                     android:textColor="@color/blue"
@@ -120,7 +120,7 @@
 
                 <TextView
                     android:layout_width="0dp"
-                    android:layout_weight="4"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:text="Rideshare : "
                     android:textColor="@color/black"
@@ -128,7 +128,7 @@
 
                 <RelativeLayout
                     android:layout_width="0dp"
-                    android:layout_weight="6"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
                     android:background="@drawable/btn_common_tranparent">
@@ -160,7 +160,7 @@
 
                 <TextView
                     android:layout_width="0dp"
-                    android:layout_weight="4"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:text="Seats : "
                     android:textColor="@color/black"
@@ -168,7 +168,7 @@
 
                 <RelativeLayout
                     android:layout_width="0dp"
-                    android:layout_weight="6"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
                     android:background="@drawable/btn_common_tranparent">

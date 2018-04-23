@@ -27,7 +27,8 @@ public class Time implements Parcelable
     @Expose
     private String seats;
 
-    public Time() {
+    public Time(){
+
     }
 
     protected Time(Parcel in) {

@@ -19,30 +19,36 @@ public class TimeLocation implements Parcelable {
     @SerializedName("Times")
     @Expose
     private List<Time> times = null;
-    public final static Parcelable.Creator<TimeLocation> CREATOR = new Creator<TimeLocation>() {
 
+    public TimeLocation(){
 
-        @SuppressWarnings({
-                "unchecked"
-        })
+    }
+
+    protected TimeLocation(Parcel in) {
+        times = in.createTypedArrayList(Time.CREATOR);
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeTypedList(times);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<TimeLocation> CREATOR = new Creator<TimeLocation>() {
+        @Override
         public TimeLocation createFromParcel(Parcel in) {
             return new TimeLocation(in);
         }
 
+        @Override
         public TimeLocation[] newArray(int size) {
-            return (new TimeLocation[size]);
+            return new TimeLocation[size];
         }
-
     };
-
-    protected TimeLocation(Parcel in) {
-        this.lat = ((Double) in.readValue((Double.class.getClassLoader())));
-        this.lang = ((Double) in.readValue((Double.class.getClassLoader())));
-        in.readList(this.times, (Time.class.getClassLoader()));
-    }
-
-    public TimeLocation() {
-    }
 
     public Double getLat() {
         return lat;
@@ -68,14 +74,5 @@ public class TimeLocation implements Parcelable {
         this.times = times;
     }
 
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(lat);
-        dest.writeValue(lang);
-        dest.writeList(times);
-    }
-
-    public int describeContents() {
-        return 0;
-    }
 
 }

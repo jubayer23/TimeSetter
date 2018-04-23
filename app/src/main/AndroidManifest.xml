@@ -28,6 +28,7 @@
         android:theme="@style/AppTheme.NoActionBar">
 
         <activity android:name=".SplashActivity"
+            android:theme="@style/AppTheme.NoActionBar.FullScreen"
             android:configChanges="orientation|screenSize|keyboardHidden">
 
             <intent-filter>

@@ -71,7 +71,7 @@
 
                 <TextView
                     android:layout_width="0dp"
-                    android:layout_weight="4"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:text="Rideshare : "
                     android:textColor="@color/black"
@@ -80,7 +80,7 @@
                 <TextView
                     android:id="@+id/tv_rideshare"
                     android:layout_width="0dp"
-                    android:layout_weight="6"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:text="Uber"
                     android:textColor="@color/blue"
@@ -97,7 +97,7 @@
 
                 <TextView
                     android:layout_width="0dp"
-                    android:layout_weight="4"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:text="Seats : "
                     android:textColor="@color/black"
@@ -106,7 +106,7 @@
                 <TextView
                     android:id="@+id/tv_seats"
                     android:layout_width="0dp"
-                    android:layout_weight="6"
+                    android:layout_weight="5"
                     android:layout_height="wrap_content"
                     android:text="4 Seats"
                     android:textColor="@color/blue"

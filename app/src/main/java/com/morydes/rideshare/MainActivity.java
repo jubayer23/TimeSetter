@@ -38,6 +38,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
+import com.google.gson.reflect.TypeToken;
 import com.morydes.rideshare.Utility.CommonMethods;
 import com.morydes.rideshare.Utility.DeviceInfoUtils;
 import com.morydes.rideshare.Utility.GpsEnableTool;
@@ -74,6 +75,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -93,8 +95,8 @@ IabBroadcastReceiver.IabBroadcastListener{
 
     BottomSheetBehavior sheetBehavior;
 
-    private List<TimeLocation> timeLocations = new ArrayList<>();
-    private List<TimeLocation> originalTimeLocations = new ArrayList<>();
+    private ArrayList<TimeLocation> timeLocations = new ArrayList<>();
+    private ArrayList<TimeLocation> originalTimeLocations = new ArrayList<>();
 
     //bottom sheet ui item
     private TextView tv_num_of_time;
@@ -155,7 +157,10 @@ IabBroadcastReceiver.IabBroadcastListener{
 
             if(!error_type.equals(SplashActivity.ERROR_TYPE_NETWORK_PROBLEM)){
 
-                originalTimeLocations =  intent.getExtras().getParcelableArrayList(SplashActivity.KEY_TIMELOCATIONS);
+                String gson = intent.getStringExtra(SplashActivity.KEY_TIMELOCATIONS);
+                Type type = new TypeToken<List<TimeLocation>>() {
+                }.getType();
+                originalTimeLocations = MydApplication.gson.fromJson(gson, type);
                 timeLocations.addAll(originalTimeLocations);
 
                 isUserHasAlreadyPin = intent.getBooleanExtra(SplashActivity.KEY_IS_USER_HAS_PIN,false);
