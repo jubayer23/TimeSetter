@@ -398,7 +398,7 @@ IabBroadcastReceiver.IabBroadcastListener{
 
         if (id == R.id.btn_set_time) {
 
-            //Log.d("DEBUG", String.valueOf(billingHelper.getIsPremium()));
+            // Log.d("DEBUG", String.valueOf(isUserHasAlreadyPin));
 
             if(isUserHasAlreadyPin && !billingHelper.getIsSubscribed()){
                 showDialogForPremium();
