@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.morydes.rideshare.MainActivity;
 import com.morydes.rideshare.R;
+import com.morydes.rideshare.SplashActivity;
 import com.morydes.rideshare.appdata.GlobalAppAccess;
 
 
@@ -38,7 +39,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         // notification icon
         final int icon = R.mipmap.ic_launcher;
 
-        Intent intent1 = new Intent(context, MainActivity.class);
+        Intent intent1 = new Intent(context, SplashActivity.class);
         intent1.putExtra(GlobalAppAccess.KEY_CALL_FROM,GlobalAppAccess.TAG_ALARM_RECEIVER);
         intent1.putExtra("time",time);
         intent1.putExtra("lat",lat);
@@ -59,7 +60,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         //        + "://" + mContext.getPackageName() + "/raw/notification");
 
         Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        showSmallNotification(mBuilder, icon, "Time Setter", "Alarm fired for a location", resultPendingIntent, alarmSound);
+        showSmallNotification(mBuilder, icon, "MoRydes", "Location reminder for pick up", resultPendingIntent, alarmSound);
         playNotificationSound();
     }
 

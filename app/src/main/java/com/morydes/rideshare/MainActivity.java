@@ -165,11 +165,13 @@ IabBroadcastReceiver.IabBroadcastListener{
 
                 isUserHasAlreadyPin = intent.getBooleanExtra(SplashActivity.KEY_IS_USER_HAS_PIN,false);
 
-                if(alarm_lat == 0 && alarm_lang == 0){
+                if(MydApplication.getInstance().getPrefManger().getIsAppRunFirstTime()){
+                    MydApplication.getInstance().getPrefManger().setIsAppRunFirstTime(false);
                     showWelcomeDialogue();
                 }else{
                     checkAllPermissionsAndSetUpMap();
                 }
+
             }else{
                   AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Network problem. please try again!", false);
 

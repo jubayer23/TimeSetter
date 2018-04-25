@@ -13,7 +13,7 @@
         android:layout_height="0dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_weight="5"
+        android:layout_weight="7"
         android:background="@drawable/background_rounded_white_border_black"
         android:orientation="vertical"
         android:weightSum="5">
@@ -53,9 +53,9 @@
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
                android:textColor="@color/black"
-               android:gravity="center"
+               android:gravity="left"
                android:textSize="18sp"
-               android:text="You already set a pin. If you want to set unlimited pin please subscribe it for $1.99 monthly."/>
+               android:text="Uh oh! you already have one pick up active.\n\nYou can set unlimited free pick ups, but only one at a time.\n\nPlease delete or wait for you current pick up to expire.\n\nOr\n\nFor less then .07 cents a day you can become verified and scheduled ahead for numerous days.  "/>
 
         </LinearLayout>
 
