@@ -114,7 +114,6 @@ public class SplashActivity extends BaseActivity {
                             AlertDialogForAnything.showAlertDialogWhenComplte(SplashActivity.this, "Error", "Server problem while loading the timeLocations!", false);
                         }*/
 
-
                         intent.putExtra(KEY_IS_USER_HAS_PIN, isUserHasAlreadyPin);
                         intent.putExtra(KEY_TIMELOCATIONS, MydApplication.gson.toJson(timeLocations));
 
