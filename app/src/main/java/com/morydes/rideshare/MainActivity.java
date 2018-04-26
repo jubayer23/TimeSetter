@@ -41,6 +41,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.gson.reflect.TypeToken;
+import com.morydes.rideshare.Utility.AppRater;
 import com.morydes.rideshare.Utility.CommonMethods;
 import com.morydes.rideshare.Utility.DeviceInfoUtils;
 import com.morydes.rideshare.Utility.GpsEnableTool;
@@ -173,6 +174,9 @@ IabBroadcastReceiver.IabBroadcastListener{
                 }else{
                     checkAllPermissionsAndSetUpMap();
                 }
+
+
+                AppRater.app_launched(this);
 
             }else{
                   AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Network problem. please try again!", false);
