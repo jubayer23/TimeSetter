@@ -8,6 +8,7 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.design.widget.BottomSheetBehavior;
@@ -17,6 +18,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -939,10 +941,10 @@ IabBroadcastReceiver.IabBroadcastListener{
     }*/
 
 
-/*    public boolean onCreateOptionsMenu(Menu paramMenu) {
+   public boolean onCreateOptionsMenu(Menu paramMenu) {
         getMenuInflater().inflate(R.menu.menu_main, paramMenu);
         return true;
-    }*/
+    }
 
     public static final int PLACE_PICKER_REQUEST = 1;
 
@@ -951,17 +953,21 @@ IabBroadcastReceiver.IabBroadcastListener{
 
         switch (paramMenuItem.getItemId()) {
 
-            case R.id.ic_poi:
+            case R.id.action_faq:
 
-                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+                showFaqDialogue();
+                //startActivity(new Intent(getActivity(), WishListActivity.class));
+                // Toast.makeText(MainActivity.this,"Please publish your app on play store first!",Toast.LENGTH_LONG).show();
+                break;
 
-                try {
-                    startActivityForResult(builder.build(this), PLACE_PICKER_REQUEST);
-                } catch (GooglePlayServicesRepairableException e) {
-                    e.printStackTrace();
-                } catch (GooglePlayServicesNotAvailableException e) {
-                    e.printStackTrace();
-                }
+            case R.id.action_share:
+
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                //String textToShare = "<h1>"+ current_service.getTitle() +"</h1><br><br><p>LongLife: https://play.google.com/store/apps/details?id=com.creative.longlife</p>";
+                sendIntent.putExtra(Intent.EXTRA_TEXT, "https://play.google.com/store/apps/details?id=" + getPackageName());
+                sendIntent.setType("text/plain");
+                startActivity(Intent.createChooser(sendIntent, "Choose media"));
                 //startActivity(new Intent(getActivity(), WishListActivity.class));
                 // Toast.makeText(MainActivity.this,"Please publish your app on play store first!",Toast.LENGTH_LONG).show();
                 break;
@@ -1126,6 +1132,35 @@ IabBroadcastReceiver.IabBroadcastListener{
             }
         });
 
+
+        dialog_start.show();
+    }
+
+    private void showFaqDialogue(){
+        final Dialog dialog_start = new Dialog(this,
+                android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        dialog_start.setCancelable(true);
+        dialog_start.setContentView(R.layout.dialog_faq);
+
+        ImageView img_close_dialog = (ImageView) dialog_start.findViewById(R.id.img_close_dialog);
+        final TextView tv_email = (TextView) dialog_start.findViewById(R.id.tv_email);
+
+        img_close_dialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog_start.dismiss();
+            }
+        });
+
+        tv_email.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent testIntent = new Intent(Intent.ACTION_VIEW);
+                Uri data = Uri.parse("mailto:?subject=MoRyde Question" + "&body=" + "Please type your question here!" + "&to=" + tv_email.getText().toString());
+                testIntent.setData(data);
+                startActivity(testIntent);
+            }
+        });
 
         dialog_start.show();
     }

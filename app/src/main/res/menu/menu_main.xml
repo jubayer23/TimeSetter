@@ -3,9 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/ic_poi"
-        android:title="Select Location"
-        app:showAsAction="always" />
+        android:id="@+id/action_faq"
+        android:icon="@drawable/ic_settings_white"
+        android:title="Faq"
+        app:showAsAction="collapseActionView" />
+
+    <item
+        android:id="@+id/action_share"
+        android:icon="@drawable/ic_settings_white"
+        android:title="Share"
+        app:showAsAction="collapseActionView" />
 
 
 
