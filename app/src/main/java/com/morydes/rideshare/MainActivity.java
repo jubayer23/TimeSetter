@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -171,12 +172,20 @@ IabBroadcastReceiver.IabBroadcastListener{
                 if(MydApplication.getInstance().getPrefManger().getIsAppRunFirstTime()){
                     MydApplication.getInstance().getPrefManger().setIsAppRunFirstTime(false);
                     showWelcomeDialogue();
+
                 }else{
-                    checkAllPermissionsAndSetUpMap();
+
+                    if(MydApplication.getInstance().getPrefManger().getIsTutorialShowNever()){
+                        AppRater.app_launched(this);
+                        checkAllPermissionsAndSetUpMap();
+                    }else{
+                        showTutorialDialog();
+                    }
+
                 }
 
 
-                AppRater.app_launched(this);
+
 
             }else{
                   AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Network problem. please try again!", false);
@@ -1132,7 +1141,44 @@ IabBroadcastReceiver.IabBroadcastListener{
             public void onClick(View view) {
                 dialog_start.dismiss();
                 //sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
+                showTutorialDialog();
+
+            }
+        });
+
+
+        dialog_start.show();
+    }
+
+
+    private void showTutorialDialog(){
+        final Dialog dialog_start = new Dialog(this,
+                android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        dialog_start.setCancelable(true);
+        dialog_start.setContentView(R.layout.dialog_tutorial);
+
+        final Button btn_ok = (Button) dialog_start.findViewById(R.id.btn_ok);
+        final CheckBox cb_never_show = (CheckBox) dialog_start.findViewById(R.id.cb_never_show);
+
+
+
+
+
+        btn_ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog_start.dismiss();
+                //sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
                 checkAllPermissionsAndSetUpMap();
+                AppRater.app_launched(MainActivity.this);
+            }
+        });
+
+        dialog_start.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                boolean isNeverShow =  cb_never_show.isChecked();
+                MydApplication.getInstance().getPrefManger().setIsTutorialShowNever(isNeverShow);
             }
         });
 
