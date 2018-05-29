@@ -1,20 +1,27 @@
 package com.morydes.rideshare;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.os.SystemClock;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -30,6 +37,7 @@ import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -60,8 +68,6 @@ import com.morydes.rideshare.model.NearByPlaceInfo;
 import com.morydes.rideshare.model.Time;
 import com.morydes.rideshare.model.TimeLocation;
 import com.morydes.rideshare.model.TimeInfo;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdate;
@@ -82,15 +88,22 @@ import org.json.JSONObject;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.asin;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
 
-public class MainActivity extends BaseActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, View.OnClickListener,CompoundButton.OnCheckedChangeListener,
-IabBroadcastReceiver.IabBroadcastListener{
+
+public class MainActivity extends BaseActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener, View.OnClickListener, CompoundButton.OnCheckedChangeListener,
+        IabBroadcastReceiver.IabBroadcastListener {
     private GoogleMap mMap;
 
     List<Marker> markers = new ArrayList<>();
@@ -121,7 +134,6 @@ IabBroadcastReceiver.IabBroadcastListener{
     private HashMap<Marker, Integer> hashMapMarker = new HashMap<>();
     LatLngBounds.Builder builder;
 
-
     private double alarm_lat, alarm_lang;
 
     private CheckBox ch_only_today;
@@ -134,6 +146,9 @@ IabBroadcastReceiver.IabBroadcastListener{
     private BillingHelper billingHelper;
 
     private boolean isUserHasAlreadyPin = false;
+
+    private Switch sw_mock_location;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,7 +174,7 @@ IabBroadcastReceiver.IabBroadcastListener{
             alarm_lat = intent.getDoubleExtra("lat", 0);
             alarm_lang = intent.getDoubleExtra("lang", 0);
 
-            if(!error_type.equals(SplashActivity.ERROR_TYPE_NETWORK_PROBLEM)){
+            if (!error_type.equals(SplashActivity.ERROR_TYPE_NETWORK_PROBLEM)) {
 
                 String gson = intent.getStringExtra(SplashActivity.KEY_TIMELOCATIONS);
                 Type type = new TypeToken<List<TimeLocation>>() {
@@ -167,32 +182,28 @@ IabBroadcastReceiver.IabBroadcastListener{
                 originalTimeLocations = MydApplication.gson.fromJson(gson, type);
                 timeLocations.addAll(originalTimeLocations);
 
-                isUserHasAlreadyPin = intent.getBooleanExtra(SplashActivity.KEY_IS_USER_HAS_PIN,false);
+                isUserHasAlreadyPin = intent.getBooleanExtra(SplashActivity.KEY_IS_USER_HAS_PIN, false);
 
-                if(MydApplication.getInstance().getPrefManger().getIsAppRunFirstTime()){
+                if (MydApplication.getInstance().getPrefManger().getIsAppRunFirstTime()) {
                     MydApplication.getInstance().getPrefManger().setIsAppRunFirstTime(false);
                     showWelcomeDialogue();
 
-                }else{
+                } else {
 
-                    if(MydApplication.getInstance().getPrefManger().getIsTutorialShowNever()){
+                    if (MydApplication.getInstance().getPrefManger().getIsTutorialShowNever()) {
                         AppRater.app_launched(this);
                         checkAllPermissionsAndSetUpMap();
-                    }else{
+                    } else {
                         showTutorialDialog();
                     }
 
                 }
 
 
-
-
-            }else{
-                  AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Network problem. please try again!", false);
+            } else {
+                AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Error", "Network problem. please try again!", false);
 
             }
-
-
 
 
             //sendRequestForGetTimes(GlobalAppAccess.URL_GET_TIMES);
@@ -237,6 +248,18 @@ IabBroadcastReceiver.IabBroadcastListener{
 
         ch_only_today = (CheckBox) findViewById(R.id.ch_only_today);
         ch_only_today.setOnCheckedChangeListener(this);
+
+        sw_mock_location = findViewById(R.id.sw_mock_location);
+        sw_mock_location.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    startMockLocation();
+                } else {
+                    stopMockLocation();
+                }
+            }
+        });
 
     }
 
@@ -289,6 +312,10 @@ IabBroadcastReceiver.IabBroadcastListener{
 
     protected void placeAllMarkersAndPlacementCamera(double lat, double lang) {
 
+        currentLocation = new Location("");
+        currentLocation.setLatitude(lat);
+        currentLocation.setLongitude(lang);
+
         builder = new LatLngBounds.Builder();
         placeAllMarkerOfListInMap();
 
@@ -307,7 +334,7 @@ IabBroadcastReceiver.IabBroadcastListener{
 
        /* if (mMap == null) return;
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(lat, lang))      // Sets the center of the map to location user
+                .target(new LatLng(lat, lang))      // Sets the center of the map to currentLocation user
                 .zoom(17)                   // Sets the zoom
                 .bearing(0)                // Sets the orientation of the camera to east
                 .tilt(0)                   // Sets the tilt of the camera to 30 degrees
@@ -319,7 +346,7 @@ IabBroadcastReceiver.IabBroadcastListener{
         int count = 0;
         mMap.clear();
         hashMapMarker.clear();
-        if(builder == null){
+        if (builder == null) {
             builder = new LatLngBounds.Builder();
         }
 
@@ -352,7 +379,7 @@ IabBroadcastReceiver.IabBroadcastListener{
 
     protected void zoomToSpecificLocation(LatLng latLng) {
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(latLng)      // Sets the center of the map to location user
+                .target(latLng)      // Sets the center of the map to currentLocation user
                 .zoom(20)                   // Sets the zoom
                 .bearing(0)                // Sets the orientation of the camera to east
                 .tilt(0)                   // Sets the tilt of the camera to 30 degrees
@@ -404,8 +431,8 @@ IabBroadcastReceiver.IabBroadcastListener{
     @Override
     public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
 
-            Log.d("DEBUG","called check box");
-            updateTimeLocationBasedOnTodayDate(isChecked);
+        Log.d("DEBUG", "called check box");
+        updateTimeLocationBasedOnTodayDate(isChecked);
 
     }
 
@@ -417,7 +444,7 @@ IabBroadcastReceiver.IabBroadcastListener{
 
             // Log.d("DEBUG", String.valueOf(isUserHasAlreadyPin));
 
-            if(isUserHasAlreadyPin && !billingHelper.getIsSubscribed()){
+            if (isUserHasAlreadyPin && !billingHelper.getIsSubscribed()) {
                 showDialogForPremium();
                 return;
             }
@@ -447,38 +474,35 @@ IabBroadcastReceiver.IabBroadcastListener{
         }
     }
 
-    private void updateTimeLocationBasedOnTodayDate(boolean isChecked){
-        showProgressDialog("Loading...",true,false);
+    private void updateTimeLocationBasedOnTodayDate(boolean isChecked) {
+        showProgressDialog("Loading...", true, false);
 
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         timeLocations.clear();
 
-        if(isChecked){
+        if (isChecked) {
             Calendar calender_current = Calendar.getInstance();
             Calendar calendar_time_location = Calendar.getInstance();
 
 
-
-            for(TimeLocation timeLocation: originalTimeLocations){
-                for(Time time: timeLocation.getTimes()){
-                    Date date_time_location = CommonMethods.convertStringToDate(time.getTime(),"dd/MM/yyyy HH:mm:ss.SSS");
+            for (TimeLocation timeLocation : originalTimeLocations) {
+                for (Time time : timeLocation.getTimes()) {
+                    Date date_time_location = CommonMethods.convertStringToDate(time.getTime(), "dd/MM/yyyy HH:mm:ss.SSS");
                     calendar_time_location.setTime(date_time_location);
 
                     boolean sameDay = calender_current.get(Calendar.YEAR) == calendar_time_location.get(Calendar.YEAR) &&
                             calender_current.get(Calendar.DAY_OF_YEAR) == calendar_time_location.get(Calendar.DAY_OF_YEAR);
 
-                    if(sameDay){
+                    if (sameDay) {
                         timeLocations.add(timeLocation);
                         break;
                     }
                 }
             }
 
-        }else{
+        } else {
             timeLocations.addAll(originalTimeLocations);
         }
-
-
 
 
         builder = null;
@@ -487,12 +511,12 @@ IabBroadcastReceiver.IabBroadcastListener{
         dismissProgressDialog();
 
 
-        if(isChecked && timeLocations.isEmpty()){
-            AlertDialogForAnything.showNotifyDialog(this,AlertDialogForAnything.ALERT_TYPE_ERROR,"No point for today!");
+        if (isChecked && timeLocations.isEmpty()) {
+            AlertDialogForAnything.showNotifyDialog(this, AlertDialogForAnything.ALERT_TYPE_ERROR, "No point for today!");
             return;
         }
 
-        if(numOfMarker > 0){
+        if (numOfMarker > 0) {
             moveMapCameraToLoadAllMarker();
         }
 
@@ -634,7 +658,7 @@ IabBroadcastReceiver.IabBroadcastListener{
 
                     String timeFormat = CommonMethods.formatDate(date, "dd/MM/yyyy HH:mm:ss.SSS");
                     String deviceTimeFormat = CommonMethods.formatDate(currentTime, "dd/MM/yyyy HH:mm:ss.SSS");
-                    sentRequestToInsertTime(GlobalAppAccess.URL_INSERT_TIME, lat, lang, MydApplication.deviceImieNumber, timeFormat, deviceTimeFormat,rideShare,seats);
+                    sentRequestToInsertTime(GlobalAppAccess.URL_INSERT_TIME, lat, lang, MydApplication.deviceImieNumber, timeFormat, deviceTimeFormat, rideShare, seats);
                     dialog_start.dismiss();
                 }
             }
@@ -675,14 +699,14 @@ IabBroadcastReceiver.IabBroadcastListener{
                             originalTimeLocations.clear();
                             timeLocations.addAll(timeInfo.getTimeLocations());
                             originalTimeLocations.addAll(timeInfo.getTimeLocations());
-                            for(TimeLocation timeLocation: originalTimeLocations){
-                                for(Time time: timeLocation.getTimes()){
-                                    if (MydApplication.deviceImieNumber.equals(time.getDeviceId())){
+                            for (TimeLocation timeLocation : originalTimeLocations) {
+                                for (Time time : timeLocation.getTimes()) {
+                                    if (MydApplication.deviceImieNumber.equals(time.getDeviceId())) {
                                         isUserHasAlreadyPin = true;
                                         break;
                                     }
                                 }
-                                if(isUserHasAlreadyPin)break;
+                                if (isUserHasAlreadyPin) break;
                             }
                             checkAllPermissionsAndSetUpMap();
 
@@ -887,7 +911,7 @@ IabBroadcastReceiver.IabBroadcastListener{
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-       // Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
+        // Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
 
         if (billingHelper.getmHelper() == null) return;
 
@@ -941,8 +965,7 @@ IabBroadcastReceiver.IabBroadcastListener{
                 }
             }
             super.onActivityResult(requestCode, resultCode, data);
-        }
-        else {
+        } else {
             //Log.d(TAG, "onActivityResult handled by IABUtil.");
         }
     }
@@ -954,7 +977,7 @@ IabBroadcastReceiver.IabBroadcastListener{
     }*/
 
 
-   public boolean onCreateOptionsMenu(Menu paramMenu) {
+    public boolean onCreateOptionsMenu(Menu paramMenu) {
         getMenuInflater().inflate(R.menu.menu_main, paramMenu);
         return true;
     }
@@ -1023,8 +1046,8 @@ IabBroadcastReceiver.IabBroadcastListener{
 
         String location = latLng.latitude + "," + latLng.longitude;
 
-        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?type=point_of_interest&rankby=distance&location=" + location + "&sensor=false&key=AIzaSyCHsF72opxJ7MfM5dqq4z_-2ujjujukI3E";
-       // Log.d("DEBUG", url);
+        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?type=point_of_interest&rankby=distance&currentLocation=" + location + "&sensor=false&key=AIzaSyCHsF72opxJ7MfM5dqq4z_-2ujjujukI3E";
+        // Log.d("DEBUG", url);
         //url = url + "?" + "email=" + email + "&password=" + password;
         // TODO Auto-generated method stub
         showProgressDialog("Loading..", true, false);
@@ -1071,7 +1094,7 @@ IabBroadcastReceiver.IabBroadcastListener{
                             zoomToSpecificLocation(nearByPlaceLatLng);
                             userClickMarker.showInfoWindow();
                         } else {
-                            Toast.makeText(MainActivity.this, "wrong location - Please select a pick up zone!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.this, "wrong currentLocation - Please select a pick up zone!", Toast.LENGTH_LONG).show();
                         }
 
 
@@ -1090,7 +1113,7 @@ IabBroadcastReceiver.IabBroadcastListener{
     }
 
 
-    private void showDialogForPremium(){
+    private void showDialogForPremium() {
         final Dialog dialog_start = new Dialog(this,
                 android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         dialog_start.setCancelable(true);
@@ -1127,7 +1150,7 @@ IabBroadcastReceiver.IabBroadcastListener{
         dialog_start.show();
     }
 
-    private void showWelcomeDialogue(){
+    private void showWelcomeDialogue() {
         final Dialog dialog_start = new Dialog(this,
                 android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         dialog_start.setCancelable(true);
@@ -1151,7 +1174,7 @@ IabBroadcastReceiver.IabBroadcastListener{
     }
 
 
-    private void showTutorialDialog(){
+    private void showTutorialDialog() {
         final Dialog dialog_start = new Dialog(this,
                 android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         dialog_start.setCancelable(true);
@@ -1159,9 +1182,6 @@ IabBroadcastReceiver.IabBroadcastListener{
 
         final Button btn_ok = (Button) dialog_start.findViewById(R.id.btn_ok);
         final CheckBox cb_never_show = (CheckBox) dialog_start.findViewById(R.id.cb_never_show);
-
-
-
 
 
         btn_ok.setOnClickListener(new View.OnClickListener() {
@@ -1177,7 +1197,7 @@ IabBroadcastReceiver.IabBroadcastListener{
         dialog_start.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
-                boolean isNeverShow =  cb_never_show.isChecked();
+                boolean isNeverShow = cb_never_show.isChecked();
                 MydApplication.getInstance().getPrefManger().setIsTutorialShowNever(isNeverShow);
             }
         });
@@ -1186,7 +1206,7 @@ IabBroadcastReceiver.IabBroadcastListener{
         dialog_start.show();
     }
 
-    private void showFaqDialogue(){
+    private void showFaqDialogue() {
         final Dialog dialog_start = new Dialog(this,
                 android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         dialog_start.setCancelable(true);
@@ -1215,7 +1235,7 @@ IabBroadcastReceiver.IabBroadcastListener{
         dialog_start.show();
     }
 
-    private void loadAdview(){
+    private void loadAdview() {
         adview_banner = findViewById(R.id.adview_banner);
         AdRequest adRequestBanner = new AdRequest.Builder()
                 .addTestDevice("554FD1C059BF37BF1981C59FF9E1DAE0")
@@ -1230,7 +1250,7 @@ IabBroadcastReceiver.IabBroadcastListener{
         mInterstitialAd.loadAd(adRequestInterstitial);
     }
 
-    public void showInterstitialAds(){
+    public void showInterstitialAds() {
         if (mInterstitialAd.isLoaded()) {
             mInterstitialAd.show();
         } else {
@@ -1238,7 +1258,183 @@ IabBroadcastReceiver.IabBroadcastListener{
         }
     }
 
-    public void changeUserPinFlagToFalse(){
+    public void changeUserPinFlagToFalse() {
         isUserHasAlreadyPin = false;
+    }
+
+
+    LocationManager locationManager;
+    private MockGpsProvider mMockGpsProviderTask = null;
+    private Location currentLocation;
+
+    private void startMockLocation() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        try {
+
+
+            locationManager.addTestProvider(LocationManager.GPS_PROVIDER,
+                    "requiresNetwork" == "",
+                    "requiresSatellite" == "",
+                    "requiresCell" == "",
+                    "hasMonetaryCost" == "",
+                    "supportsAltitude" == "",
+                    "supportsSpeed" == "",
+                    "supportsBearing" == "",
+                    android.location.Criteria.POWER_LOW,
+                    android.location.Criteria.ACCURACY_FINE);
+
+
+            LatLng latLng = getLatLangBaseOnDistance(40);
+
+            if(latLng != null){
+                mMockGpsProviderTask = new MockGpsProvider();
+                mMockGpsProviderTask.execute(getLatLangBaseOnDistance(100));
+            }else{
+                Toast.makeText(this,"You must enable gps.", Toast.LENGTH_LONG).show();
+                sw_mock_location.setChecked(false);
+            }
+
+
+        } catch (Exception ee) {
+
+            sw_mock_location.setChecked(false);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage("You need to Select Fake Gps as a Mock currentLocation app");
+// Add the buttons
+            builder.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS));
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+
+                }
+            });
+
+
+// Create the AlertDialog
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
+    }
+
+    private void stopMockLocation() {
+        if (locationManager != null && sw_mock_location.isChecked())
+            locationManager.removeTestProvider(LocationManager.GPS_PROVIDER);
+    }
+
+    private LatLng getLatLangBaseOnDistance(int distance) {
+        LatLng newlatlng;
+
+        if(currentLocation != null){
+            newlatlng = getNewLatlng(distance, 90, currentLocation.getLatitude(), currentLocation.getLongitude());
+            return newlatlng;
+        }
+
+        return null;
+
+
+        //  mMap.animateCamera(CameraUpdateFactory.newLatLng(newlatlng));
+
+    }
+
+    LatLng getNewLatlng(double distance, double angle, double latitude, double longitude) {
+
+        /*double dx = distance * Math.cos(Math.toRadians(angle));
+        double dy = distance * Math.sin(Math.toRadians(angle));
+        Log.d("ANGEL", "" + angle + "/" + dx + "/" + dy);
+
+        double r_earth = 6378000.0;
+        Double new_latitude = latitude + (dy / r_earth) * (180 / Math.PI);
+        Double new_longitude = longitude + ((dx / r_earth) * (180 / Math.PI) / Math.cos(latitude));
+        return new LatLng(new_latitude, new_longitude);*/
+
+        double brngRad = toRadians(angle);
+        double latRad = toRadians(latitude);
+        double lonRad = toRadians(longitude);
+        int earthRadiusInMetres = 6371000;
+        double distFrac = distance / earthRadiusInMetres;
+
+        double latitudeResult = asin(sin(latRad) * cos(distFrac) + cos(latRad) * sin(distFrac) * cos(brngRad));
+        double a = atan2(sin(brngRad) * sin(distFrac) * cos(latRad), cos(distFrac) - sin(latRad) * sin(latitudeResult));
+        double longitudeResult = (lonRad + a + 3 * PI) % (2 * PI) - PI;
+        return new LatLng(toDegrees(latitudeResult), toDegrees(longitudeResult));
+
+    }
+
+
+    private class MockGpsProvider extends AsyncTask<LatLng, Integer, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+
+        }
+
+        public static final String LOG_TAG = "GpsMockProvider";
+        public static final String GPS_MOCK_PROVIDER = "GpsMockProvider";
+
+        /**
+         * Keeps track of the currently processed coordinate.
+         */
+        public Integer index = 0;
+
+        @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+        @Override
+        protected Void doInBackground(LatLng... data) {
+            // process data
+            try {
+
+
+                // let UI Thread know which coordinate we are processing
+                publishProgress(index);
+                // empty or invalid line
+
+                // translate to actual GPS currentLocation
+                Log.d("SET_MOCK", data[0].latitude + "--" + data[0].longitude);
+                currentLocation = new Location(LocationManager.GPS_PROVIDER);
+                currentLocation.setLatitude(data[0].latitude);
+                currentLocation.setLongitude(data[0].longitude);
+                currentLocation.setAccuracy(5);
+                currentLocation.setTime(System.currentTimeMillis());
+//                currentLocation.setBearing(3.14F);
+//                currentLocation.setSpeed(2);
+//                currentLocation.setAltitude(10);
+                currentLocation.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
+                locationManager.setTestProviderEnabled(LocationManager.GPS_PROVIDER, true);
+
+                locationManager.setTestProviderStatus(LocationManager.GPS_PROVIDER, LocationProvider.AVAILABLE, null, System.currentTimeMillis());
+
+                locationManager.setTestProviderLocation(LocationManager.GPS_PROVIDER, currentLocation);
+
+                // Thread.sleep(300);
+
+                // sleep for a while before providing next currentLocation
+            } catch (Exception ee) {
+                Log.d("ACTIVITY", ee.getMessage());
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+
+            super.onPostExecute(aVoid);
+            // mMap.clear();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            Log.d(LOG_TAG, "onProgressUpdate():" + values[0]);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        stopMockLocation();
+        super.onBackPressed();
     }
 }

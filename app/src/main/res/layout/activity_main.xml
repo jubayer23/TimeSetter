@@ -41,6 +41,7 @@
 
         <LinearLayout
             android:layout_width="wrap_content"
+            android:id="@+id/ll_checkbox"
             android:layout_height="wrap_content">
 
             <CheckBox
@@ -50,6 +51,15 @@
                 android:checked="false"
                 android:text="Only today" />
         </LinearLayout>
+
+        <Switch
+            android:id="@+id/sw_mock_location"
+            android:layout_toRightOf="@+id/ll_checkbox"
+            android:layout_marginLeft="20dp"
+            android:text="Mock Location"
+            android:layout_marginTop="3dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
     </RelativeLayout>
 
